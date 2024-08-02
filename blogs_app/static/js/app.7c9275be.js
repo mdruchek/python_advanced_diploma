@@ -30,7 +30,7 @@
   function o(e) {
     return (
       u.p +
-      "js/" +
+      "static/js/" +
       ({}[e] || e) +
       "." +
       {
@@ -64,7 +64,7 @@
           (r[e] = new Promise(function (t, n) {
             for (
               var c =
-                  "css/" +
+                  "static/css/" +
                   ({}[e] || e) +
                   "." +
                   {
