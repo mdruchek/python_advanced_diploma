@@ -24,6 +24,9 @@ def create_app():
     except OSError:
         pass
 
+    from . import database
+    database.init_app(app)
+
     @app.route('/')
     def index():
         return render_template('index.html')
