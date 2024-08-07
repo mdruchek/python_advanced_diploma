@@ -2,6 +2,7 @@ services:
   db:
     container_name: db
     image: postgres
+    restart: always
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
@@ -11,6 +12,11 @@ services:
     networks:
       - network
     command: 'postgres -c log_destination=stderr -c logging_collector=on -c log_directory=/var/log/postgresql'
+
+  adminer:
+    image: adminer
+    restart: always
+    entrypoint:
 
   web:
     container_name: web
