@@ -27,6 +27,10 @@ def create_app():
     from . import database
     database.init_app(app)
 
+    from .routes import tweet, user
+    app.register_blueprint(tweet.bp)
+    app.register_blueprint(user.bp)
+
     @app.route('/')
     def index():
         return render_template('index.html')
