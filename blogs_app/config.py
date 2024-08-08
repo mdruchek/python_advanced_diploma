@@ -4,8 +4,7 @@ class Config(object):
 
 
 class ProductionConfig(Config):
-    DATABASE_URI = ...
-    SECRET_KEY = ''
+    DATABASE_URI = 'postgresql+psycopg2://admin:admin@db:5432/twitter_clone_db'
 
 
 class DevelopmentConfig(Config):
