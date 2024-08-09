@@ -17,7 +17,7 @@ class User(Base):
     """Модель User"""
     __tablename__ = 'user'
 
-    id: Mapped[int] = mapped_column(Integer, Sequence('user_id_seq'))
+    id: Mapped[int] = mapped_column(Integer, Sequence('user_id_seq'), primary_key=True)
     name: Mapped[required_str50]
     api_key: Mapped[required_str50]
 
