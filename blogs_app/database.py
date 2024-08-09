@@ -1,3 +1,5 @@
+import click
+
 from flask import current_app, g, Flask
 
 from sqlalchemy import create_engine
@@ -24,8 +26,16 @@ def close_db(e=None):
 
 
 def init_db():
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+
+
+@click.command('init-db')
+def init_db_command():
+    init_db()
+    click.echo('Initialized the database')
 
 
 def init_app(app: Flask):
     app.teardown_appcontext(close_db)
+    app.cli.add_command(init_db_command)
