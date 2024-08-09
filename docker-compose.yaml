@@ -16,7 +16,10 @@ services:
   adminer:
     image: adminer
     restart: always
-    entrypoint:
+    ports:
+      - 8080:8080
+    networks:
+      - network
 
   web:
     container_name: web
