@@ -24,8 +24,9 @@ def create_app():
     except OSError:
         pass
 
-    from . import database
-    database.init_app(app)
+    with app.app_context():
+        from . import database
+        database.init_app(app)
 
     from .routes import tweet, user
     app.register_blueprint(tweet.bp)
