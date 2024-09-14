@@ -2,7 +2,7 @@ import os
 
 from flask import Flask, render_template
 
-from .config import ProductionConfig
+from .config import ProductionConfig, DevelopmentConfig
 
 
 APP_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -17,7 +17,7 @@ def create_app():
         template_folder=TEMPLATE_PATH
     )
 
-    app.config.from_object(ProductionConfig)
+    app.config.from_object(DevelopmentConfig())
 
     try:
         os.makedirs(app.instance_path)
