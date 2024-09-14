@@ -1,6 +1,5 @@
 class Config(object):
     TESTING = False
-    SECRET_KEY = 'dev'
 
 
 class ProductionConfig(Config):
@@ -8,7 +7,8 @@ class ProductionConfig(Config):
 
 
 class DevelopmentConfig(Config):
-    DATABASE_URI = ...
+    DATABASE_URI = 'sqlite:///tmp/develop_database.db'
+    SECRET_KEY = 'dev'
 
 
 class TestingConfig(Config):
