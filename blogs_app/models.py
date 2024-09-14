@@ -1,7 +1,7 @@
 from typing_extensions import Annotated
 
-from sqlalchemy import Integer, String, Sequence
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import Integer, String, Sequence, ForeignKey
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 required_str = Annotated[str, mapped_column(String, nullable=False)]
@@ -21,6 +21,15 @@ class User(Base):
     name: Mapped[required_str50]
     api_key: Mapped[required_str50]
 
+    tweets: Mapped[list['Tweet']] = relationship(
+        back_populates='user',
+        cascade='all, delete',
+        passive_deletes=True,
+    )
+    likes: Mapped[list['Like']] = relationship(back_populates='user')
+    #follow: Mapped[list['Follow']] = relationship(back_populates='author')
+    #follow: Mapped[list['Follow']] = relationship(back_populates='followers')
+
 
 class Tweet(Base):
     """Модель Tweet"""
@@ -28,7 +37,19 @@ class Tweet(Base):
 
     id: Mapped[int] = mapped_column(Integer, Sequence('tweet_id_seq'), primary_key=True)
     content: Mapped[required_str500]
-    author_id: Mapped[int]
+    author_id: Mapped[int] = mapped_column(ForeignKey('user.id', ondelete='CASCADE'))
+
+    author: Mapped['User'] = relationship(back_populates='tweets')
+    likes: Mapped[list['Like']] = relationship(
+        back_populates='tweet',
+        cascade='all, delete',
+        passive_deletes=True,
+    )
+    medias: Mapped[list['Media']] = relationship(
+        back_populates='tweet',
+        cascade='all, delete',
+        passive_deletes=True,
+    )
 
 
 class Like(Base):
@@ -36,8 +57,11 @@ class Like(Base):
     __tablename__ = 'like'
 
     id: Mapped[int] = mapped_column(Integer, Sequence('like_id_seq'), primary_key=True)
-    user_id: Mapped[int]
-    tweet_id: Mapped[int]
+    user_id: Mapped[int] = mapped_column(ForeignKey('user.id', ondelete='SET NULL'))
+    tweet_id: Mapped[int] = mapped_column(ForeignKey('tweet.id', ondelete='CASCADE'))
+
+    user: Mapped['User'] = relationship(back_populates='like')
+    tweet: Mapped['Tweet'] = relationship(back_populates='likes')
 
 
 class Media(Base):
@@ -45,8 +69,10 @@ class Media(Base):
     __tablename__ = 'media'
 
     id: Mapped[int] = mapped_column(Integer, Sequence('media_id_seq'), primary_key=True)
-    tweet_id: Mapped[int]
+    tweet_id: Mapped[int] = mapped_column(ForeignKey('tweet.id', ondelete='CASCADE'))
     url: Mapped[required_str]
+
+    tweet: Mapped['Tweet'] = relationship(back_populates='tweet')
 
 
 class Follow(Base):
@@ -54,5 +80,8 @@ class Follow(Base):
     __tablename__ = 'follow'
 
     id: Mapped[int] = mapped_column(Integer, Sequence('follow_id_seq'), primary_key=True)
-    user_id: Mapped[int]
-    follower_id: Mapped[int]
+    author_id: Mapped[int] = mapped_column(ForeignKey('user.id', ondelete='CASCADE'))
+    follower_id: Mapped[int] = mapped_column(ForeignKey('user.id', ondelete='CASCADE'))
+
+    author: Mapped['User'] = relationship(back_populates='author')
+    follower: Mapped['User'] = relationship(back_populates='follower')
