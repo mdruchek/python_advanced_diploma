@@ -27,8 +27,8 @@ class User(Base):
         passive_deletes=True,
     )
     likes: Mapped[list['Like']] = relationship(back_populates='user')
-    #follow: Mapped[list['Follow']] = relationship(back_populates='author')
-    #follow: Mapped[list['Follow']] = relationship(back_populates='followers')
+    # follow: Mapped[list['Follow']] = relationship(back_populates='author')
+    # follow: Mapped[list['Follow']] = relationship(back_populates='followers')
 
 
 class Tweet(Base):
@@ -83,5 +83,5 @@ class Follow(Base):
     author_id: Mapped[int] = mapped_column(ForeignKey('user.id', ondelete='CASCADE'))
     follower_id: Mapped[int] = mapped_column(ForeignKey('user.id', ondelete='CASCADE'))
 
-    author: Mapped['User'] = relationship(back_populates='author')
-    follower: Mapped['User'] = relationship(back_populates='follower')
+    # author: Mapped['User'] = relationship(back_populates='author')
+    # follower: Mapped['User'] = relationship(back_populates='follower')
