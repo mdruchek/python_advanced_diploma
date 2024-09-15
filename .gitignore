@@ -1,6 +1,7 @@
 .idea/
 
 .venv/
+.venv3/
 .venv3.12
 
 *.pyc
