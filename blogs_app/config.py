@@ -3,11 +3,13 @@ class Config(object):
 
 
 class ProductionConfig(Config):
-    DATABASE_URI = 'postgresql+psycopg2://admin:admin@db:5432/twitter_clone_db'
+    ENVIRONMENT = 'prod'
+    DATABASE = 'postgresql+psycopg2://admin:admin@db:5432/twitter_clone_db'
 
 
 class DevelopmentConfig(Config):
-    DATABASE_URI = 'sqlite:///tmp/develop_database.db'
+    ENVIRONMENT = 'dev'
+    DATABASE = 'sqlite:///{instance_path}/dev_database.db'
     SECRET_KEY = 'dev'
 
 
