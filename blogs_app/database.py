@@ -8,7 +8,15 @@ from sqlalchemy.orm import sessionmaker
 from .models import Base
 
 
-engine = create_engine(current_app.config['DATABASE_URI'])
+if current_app.config['ENVIRONMENT'] == 'dev':
+    current_app.config['DATABASE'] = (
+        current_app.config['DATABASE']
+        .format(
+            instance_path=current_app.instance_path,
+        )
+    )
+
+engine = create_engine(current_app.config['DATABASE'])
 Session = sessionmaker(bind=engine)
 
 
@@ -30,10 +38,10 @@ def init_db():
     Base.metadata.create_all(bind=engine)
 
 
-@click.command('init-db')
+@click.command('init-dev-db')
 def init_db_command():
     init_db()
-    click.echo('Initialized the database')
+    click.echo('Initialized the database for development')
 
 
 def init_app(app: Flask):
