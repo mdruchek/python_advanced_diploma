@@ -1,5 +1,9 @@
+from xmlrpc.client import FastParser
+
+
 class Config(object):
     TESTING = False
+    ECHO_ENGINE_DATABASE = False
 
 
 class ProductionConfig(Config):
@@ -10,6 +14,7 @@ class ProductionConfig(Config):
 class DevelopmentConfig(Config):
     ENVIRONMENT = 'dev'
     DATABASE = 'sqlite:///{instance_path}/dev_database.db'
+    ECHO_ENGINE_DATABASE = True
     SECRET_KEY = 'dev'
 
 

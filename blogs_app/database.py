@@ -16,7 +16,7 @@ if current_app.config['ENVIRONMENT'] == 'dev':
         )
     )
 
-engine = create_engine(current_app.config['DATABASE'])
+engine = create_engine(current_app.config['DATABASE'], echo=current_app.config['ECHO_ENGINE_DATABASE'])
 Session = sessionmaker(bind=engine)
 
 
