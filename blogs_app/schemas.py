@@ -27,5 +27,5 @@ class Media(BaseModel):
 
 class Follow(BaseModel):
     id: int
-    user_id: int
+    author_id: int
     follower_id: int
