@@ -19,7 +19,8 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(Integer, Sequence('user_id_seq'), primary_key=True)
     name: Mapped[required_str50]
-    api_key: Mapped[required_str50]
+    # создать миграцию
+    api_key: Mapped[required_str50] = mapped_column(unique=True)
 
     tweets: Mapped[list['Tweet']] = relationship(
         back_populates='user',
