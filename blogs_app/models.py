@@ -84,5 +84,5 @@ class Follow(Base):
     author_id: Mapped[int] = mapped_column(ForeignKey('user.id', ondelete='CASCADE'))
     follower_id: Mapped[int] = mapped_column(ForeignKey('user.id', ondelete='CASCADE'))
 
-    # author: Mapped['User'] = relationship(back_populates='author')
-    # follower: Mapped['User'] = relationship(back_populates='follower')
+    author: Mapped['User'] = relationship(back_populates='author', foreign_keys=[author_id])
+    follower: Mapped['User'] = relationship(back_populates='follower', foreign_keys=[follower_id])
