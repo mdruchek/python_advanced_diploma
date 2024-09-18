@@ -23,13 +23,13 @@ class User(Base):
     api_key: Mapped[required_str50] = mapped_column(unique=True)
 
     tweets: Mapped[list['Tweet']] = relationship(
-        back_populates='user',
+        back_populates='author',
         cascade='all, delete',
         passive_deletes=True,
     )
     likes: Mapped[list['Like']] = relationship(back_populates='user')
-    # follow: Mapped[list['Follow']] = relationship(back_populates='author')
-    # follow: Mapped[list['Follow']] = relationship(back_populates='followers')
+    follow_authors: Mapped[list['Follow']] = relationship(back_populates='author')
+    follow_followers: Mapped[list['Follow']] = relationship(back_populates='follower')
 
 
 class Tweet(Base):
@@ -61,7 +61,7 @@ class Like(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey('user.id', ondelete='SET NULL'))
     tweet_id: Mapped[int] = mapped_column(ForeignKey('tweet.id', ondelete='CASCADE'))
 
-    user: Mapped['User'] = relationship(back_populates='like')
+    user: Mapped['User'] = relationship(back_populates='likes')
     tweet: Mapped['Tweet'] = relationship(back_populates='likes')
 
 
@@ -73,7 +73,7 @@ class Media(Base):
     tweet_id: Mapped[int] = mapped_column(ForeignKey('tweet.id', ondelete='CASCADE'))
     url: Mapped[required_str]
 
-    tweet: Mapped['Tweet'] = relationship(back_populates='tweet')
+    tweet: Mapped['Tweet'] = relationship(back_populates='medias')
 
 
 class Follow(Base):
