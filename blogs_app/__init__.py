@@ -19,6 +19,11 @@ def create_app():
 
     app.config.from_object(DevelopmentConfig())
 
+    with app.app_context():
+        from . import factories
+        from . import database
+        from . import models
+
     try:
         os.makedirs(app.instance_path)
     except OSError:

@@ -5,7 +5,8 @@ from flask import current_app, g, Flask
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from .models import Base
+from blogs_app import models
+from blogs_app import factories
 
 
 if current_app.config['ENVIRONMENT'] == 'dev':
@@ -34,8 +35,9 @@ def close_db(e=None):
 
 
 def init_db():
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
+    models.Base.metadata.drop_all(bind=engine)
+    models.Base.metadata.create_all(bind=engine)
+    user = factories.UserFactory()
 
 
 @click.command('init-dev-db')

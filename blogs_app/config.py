@@ -1,6 +1,3 @@
-from xmlrpc.client import FastParser
-
-
 class Config(object):
     TESTING = False
     ECHO_ENGINE_DATABASE = False

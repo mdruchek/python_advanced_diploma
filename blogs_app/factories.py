@@ -4,13 +4,12 @@ import factory
 from factory.fuzzy import FuzzyText
 
 from .models import User
-from .database import get_db
-
+from blogs_app import database
 
 class UserFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
         model = User
-        sqlalchemy_session = get_db()
+        sqlalchemy_session = database.get_db()
         sqlalchemy_get_or_create = ('api_key',)
 
     name = factory.Faker('first_name', locale='ru_Ru')
