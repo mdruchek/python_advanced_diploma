@@ -14,7 +14,15 @@ class Base(DeclarativeBase):
 
 
 class User(Base):
-    """Модель User"""
+    """
+    Модель User
+
+    Attributes:
+        id (int)
+        name (str)
+        api_key (str)
+    """
+
     __tablename__ = 'user'
 
     id: Mapped[int] = mapped_column(Integer, Sequence('user_id_seq'), primary_key=True)
@@ -33,7 +41,15 @@ class User(Base):
 
 
 class Tweet(Base):
-    """Модель Tweet"""
+    """
+    Модель Tweet
+
+    Attributes:
+        id (int)
+        content (str)
+        author_id (int)
+    """
+
     __tablename__ = 'tweet'
 
     id: Mapped[int] = mapped_column(Integer, Sequence('tweet_id_seq'), primary_key=True)
@@ -54,7 +70,15 @@ class Tweet(Base):
 
 
 class Like(Base):
-    """Модель Like"""
+    """
+    Модель Like
+
+    Attributes:
+        id (int)
+        user_id (int)
+        tweet_id (int)
+    """
+
     __tablename__ = 'like'
 
     id: Mapped[int] = mapped_column(Integer, Sequence('like_id_seq'), primary_key=True)
@@ -66,7 +90,15 @@ class Like(Base):
 
 
 class Media(Base):
-    """Модель Media"""
+    """
+    Модель Media
+
+    Attributes:
+        id (int)
+        tweet_id (int)
+        url (str)
+    """
+
     __tablename__ = 'media'
 
     id: Mapped[int] = mapped_column(Integer, Sequence('media_id_seq'), primary_key=True)
@@ -77,7 +109,15 @@ class Media(Base):
 
 
 class Follow(Base):
-    """Модель Follow"""
+    """
+    Модель Follow
+
+    Attributes:
+        id (str)
+        author_id (str)
+        follower_id (str)
+    """
+
     __tablename__ = 'follow'
 
     id: Mapped[int] = mapped_column(Integer, Sequence('follow_id_seq'), primary_key=True)
