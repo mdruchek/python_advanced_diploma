@@ -37,7 +37,12 @@ def close_db(e=None):
 def init_db():
     models.Base.metadata.drop_all(bind=engine)
     models.Base.metadata.create_all(bind=engine)
-    user = factories.UserFactory()
+    for _ in range(5):
+        factories.UserFactory()
+        factories.TweetFactory()
+        factories.LikeFactory()
+        factories.MediaFactory()
+        factories.FollowFactory()
 
 
 @click.command('init-dev-db')
