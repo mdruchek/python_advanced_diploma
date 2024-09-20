@@ -1,6 +1,6 @@
 from typing_extensions import Annotated
 
-from sqlalchemy import Integer, String, Sequence, ForeignKey
+from sqlalchemy import Integer, String, Sequence, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -80,6 +80,10 @@ class Like(Base):
     """
 
     __tablename__ = 'like'
+    __table_args__ = (
+        #создать миграцию
+        UniqueConstraint('user_id', 'tweet_id'),
+    )
 
     id: Mapped[int] = mapped_column(Integer, Sequence('like_id_seq'), primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey('user.id', ondelete='SET NULL'))
@@ -119,6 +123,10 @@ class Follow(Base):
     """
 
     __tablename__ = 'follow'
+    __table_args__ = (
+        #создать миграцию
+        UniqueConstraint('author_id', 'follower_id'),
+    )
 
     id: Mapped[int] = mapped_column(Integer, Sequence('follow_id_seq'), primary_key=True)
     author_id: Mapped[int] = mapped_column(ForeignKey('user.id', ondelete='CASCADE'))
