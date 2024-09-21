@@ -39,6 +39,9 @@ class User(Base):
     # follow_authors: Mapped[list['Follow']] = relationship(back_populates='author')
     # follow_followers: Mapped[list['Follow']] = relationship(back_populates='follower')
 
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 
 class Tweet(Base):
     """
@@ -68,6 +71,9 @@ class Tweet(Base):
         passive_deletes=True,
     )
 
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 
 class Like(Base):
     """
@@ -92,6 +98,9 @@ class Like(Base):
     user: Mapped['User'] = relationship(back_populates='likes')
     tweet: Mapped['Tweet'] = relationship(back_populates='likes')
 
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 
 class Media(Base):
     """
@@ -110,6 +119,9 @@ class Media(Base):
     url: Mapped[required_str]
 
     tweet: Mapped['Tweet'] = relationship(back_populates='medias')
+
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
 class Follow(Base):
@@ -134,3 +146,6 @@ class Follow(Base):
 
     # author: Mapped['User'] = relationship(back_populates='author', foreign_keys=[author_id])
     # follower: Mapped['User'] = relationship(back_populates='follower', foreign_keys=[follower_id])
+
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
