@@ -14,7 +14,7 @@ def me():
     db = database.get_db()
     user = db.execute(select(models.User).where(models.User.api_key == api_key)).scalar()
     user_dict = user.to_dict()
-    user = schemas.UserSchemas(**user_dict)
+    user = schemas.UserSchema(**user_dict)
     return user.model_dump_json()
 # {
 #         "result": True,
