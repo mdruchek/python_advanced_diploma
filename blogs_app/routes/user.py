@@ -12,24 +12,26 @@ bp = Blueprint('users', __name__, url_prefix='/api/users')
 def me():
     api_key = request.args.get('api-key')
     db = database.get_db()
-    user = db.execute(select(models.User).where(models.User.api_key == api_key))
-    return user.mo
-    # {
-    #     "result": True,
-    #     "user": {
-    #         "id": 6,
-    #         "name": 'Кнопочка',
-    #         "followers":[
-    #             {
-    #                 "id":1,
-    #                 "name":"Семён"
-    #             }
-    #         ],
-    #         "following":[
-    #             {
-    #                 "id":2,
-    #                 "name":"Лавр"
-    #             }
-    #         ]
-    #     }
-    # }
+    user = db.execute(select(models.User).where(models.User.api_key == api_key)).scalar()
+    user_dict = user.to_dict()
+    user = schemas.UserSchemas(**user_dict)
+    return user.model_dump_json()
+# {
+#         "result": True,
+#         "user": {
+#             "id": 6,
+#             "name": 'Кнопочка',
+#             "followers":[
+#                 {
+#                     "id":1,
+#                     "name":"Семён"
+#                 }
+#             ],
+#             "following":[
+#                 {
+#                     "id":2,
+#                     "name":"Лавр"
+#                 }
+#             ]
+#         }
+#     }
