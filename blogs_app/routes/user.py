@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 from sqlalchemy import select
 
 from blogs_app import database
@@ -12,25 +12,49 @@ bp = Blueprint('users', __name__, url_prefix='/api/users')
 def me():
     api_key = request.headers.get('Api-Key')
     db = database.get_db()
-    user = db.execute(select(models.User).where(models.User.api_key == api_key)).scalar()
-    # user_dict = user.to_dict()
-    # user = schemas.UserSchema(**user_dict)
-    return {#user.model_dump_json()
-        "result": True,
+    user = db.execute(
+        select(
+            models.User,
+            models.Follow.author_id,
+            models.Follow.follower_id
+        ).where(
+            models.User.api_key == api_key
+        )
+    ).scalar()
+
+    if user:
+        user_dict = user.to_dict()
+        user_dict['followers'] = [f.follower.to_dict(exclude=('api_key',)) for f in user.follows_author]
+        user_dict['following'] = [f.author.to_dict(exclude=('api_key',)) for f in user.follows_follower]
+        return jsonify(
+            {
+                'result': True,
+                'user': user_dict
+            }
+        )
+    return jsonify(
+        # {
+        #     'result': False,
+        #     'error_type': 'str',
+        #     'error_message': 'str'
+        # }
+    # )
+    {
+        'result' : True,
         "user": {
-            "id": 6,
-            "name": 'Кнопочка',
-            "followers":[
-                {
-                    "id":1,
-                    "name":"Семён"
-                }
-            ],
-            "following":[
-                {
-                    "id":2,
-                    "name":"Лавр"
-                }
-            ]
+        "id":"int",
+        "name":"str",
+        "followers":[
+            {
+                "id":"int",
+                "name":"str"
+            }
+        ],
+        "following":[
+            {
+                "id":"int",
+                "name":"str"
+            }
+        ]
         }
-    }
+    })
