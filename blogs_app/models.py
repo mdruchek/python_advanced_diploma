@@ -36,11 +36,11 @@ class User(Base):
         passive_deletes=True,
     )
     likes: Mapped[list['Like']] = relationship(back_populates='user')
-    # follow_authors: Mapped[list['Follow']] = relationship(back_populates='author')
-    # follow_followers: Mapped[list['Follow']] = relationship(back_populates='follower')
+    follows_author: Mapped[list['Follow']] = relationship(back_populates='author', foreign_keys='[Follow.author_id]')
+    follows_follower: Mapped[list['Follow']] = relationship(back_populates='follower', foreign_keys='[Follow.follower_id]')
 
-    def to_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+    def to_dict(self, exclude=()):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in exclude}
 
 
 class Tweet(Base):
@@ -144,8 +144,8 @@ class Follow(Base):
     author_id: Mapped[int] = mapped_column(ForeignKey('user.id', ondelete='CASCADE'))
     follower_id: Mapped[int] = mapped_column(ForeignKey('user.id', ondelete='CASCADE'))
 
-    # author: Mapped['User'] = relationship(back_populates='author', foreign_keys=[author_id])
-    # follower: Mapped['User'] = relationship(back_populates='follower', foreign_keys=[follower_id])
+    author: Mapped['User'] = relationship(foreign_keys=[author_id])
+    follower: Mapped['User'] = relationship(foreign_keys=[follower_id])
 
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
