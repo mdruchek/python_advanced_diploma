@@ -12,10 +12,19 @@ bp = Blueprint('tweet', __name__, url_prefix='/api/tweets')
 
 @bp.route('/', methods=('POST',))
 def create_tweet():
+    db = database.get_db()
     api_key = request.headers.get('Api-Key')
     request_data = request.json
-    print(request_data)
-    return ''
+    user = db.execute(select(models.User).where(models.User.api_key == api_key)).scalar()
+    tweet = models.Tweet(content=request_data['tweet_data'])
+    user.tweets.append(tweet)
+    db.commit()
+    return jsonify(
+        {
+            'result': True,
+            'tweet_id': tweet.id
+        }
+    )
 
 
 @bp.route('/', methods=('GET',))
@@ -28,38 +37,12 @@ def get_tweets():
         tweet_dict.pop('author_id')
         tweet_dict['author'] = tweet.author.to_dict(exclude=('api_key',))
         tweet_dict['likes'] = [like.user.to_dict(exclude=('api_key',)) for like in tweet.likes]
+        for like_dict in tweet_dict['likes']:
+            like_dict['user_id'] = like_dict.pop('id')
         tweets_list_of_dict.append(tweet_dict)
-    print(tweets_list_of_dict)
     return jsonify(
         {
             'result': True,
             'tweets': tweets_list_of_dict
         }
     )
-
-
-    # {
-    # “result”: true,
-    # "tweets": [
-    #     {
-    #         "id": int,
-    #         "content": string,
-    #         "attachments"[
-    #             link_1, // relative?
-    # link_2,
-    # ...
-    # ]
-    # "author": {
-    #     "id": int
-    #     "name": string
-    # }
-    # “likes”: [
-    #     {
-    # “user_id”: int,
-    # “name”: string
-    # }
-    # ]
-    # },
-    # ...,
-    # ]
-    # }
