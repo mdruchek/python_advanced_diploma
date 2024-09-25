@@ -33,9 +33,10 @@ def create_app():
         from . import database
         database.init_app(app)
 
-    from .routes import tweet, user
+    from .routes import tweet, user, medias
     app.register_blueprint(tweet.bp)
     app.register_blueprint(user.bp)
+    app.register_blueprint(medias.bp)
 
     @app.route('/')
     def index():
