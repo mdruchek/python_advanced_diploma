@@ -1,6 +1,8 @@
 class Config(object):
     TESTING = False
     ECHO_ENGINE_DATABASE = False
+    UPLOAD_FOLDER = 'medias'
+    ALLOWED_EXTENSIONS = set(['jpg', 'jpeg'])
 
 
 class ProductionConfig(Config):
