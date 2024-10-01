@@ -1,6 +1,6 @@
 from typing_extensions import Annotated
 
-from sqlalchemy import Integer, String, Sequence, ForeignKey, UniqueConstraint
+from sqlalchemy import Integer, String, Sequence, JSON, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -51,6 +51,7 @@ class Tweet(Base):
         id (int)
         content (str)
         author_id (int)
+        media_ids (json)
     """
 
     __tablename__ = 'tweet'
@@ -58,6 +59,8 @@ class Tweet(Base):
     id: Mapped[int] = mapped_column(Integer, Sequence('tweet_id_seq'), primary_key=True)
     content: Mapped[required_str500]
     author_id: Mapped[int] = mapped_column(ForeignKey('user.id', ondelete='CASCADE'))
+    # создать миграцию
+    media_ids = mapped_column(JSON)
 
     author: Mapped['User'] = relationship(back_populates='tweets')
     likes: Mapped[list['Like']] = relationship(
@@ -65,11 +68,11 @@ class Tweet(Base):
         cascade='all, delete',
         passive_deletes=True,
     )
-    medias: Mapped[list['Media']] = relationship(
-        back_populates='tweet',
-        cascade='all, delete',
-        passive_deletes=True,
-    )
+    # medias: Mapped[list['Media']] = relationship(
+    #     back_populates='tweet',
+    #     cascade='all, delete',
+    #     passive_deletes=True,
+    # )
 
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
@@ -115,10 +118,11 @@ class Media(Base):
     __tablename__ = 'media'
 
     id: Mapped[int] = mapped_column(Integer, Sequence('media_id_seq'), primary_key=True)
-    tweet_id: Mapped[int] = mapped_column(ForeignKey('tweet.id', ondelete='CASCADE'))
+    # создать миграцию
+    # tweet_id: Mapped[int] = mapped_column(ForeignKey('tweet.id', ondelete='CASCADE'))
     url: Mapped[required_str]
 
-    tweet: Mapped['Tweet'] = relationship(back_populates='medias')
+    # tweet: Mapped['Tweet'] = relationship(back_populates='medias')
 
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
