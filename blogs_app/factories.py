@@ -43,7 +43,7 @@ class MediaFactory(factory.alchemy.SQLAlchemyModelFactory):
         sqlalchemy_session = database.get_db()
         sqlalchemy_session_persistence = 'commit'
 
-    tweet_id = factory.Faker('pyint', min_value=1, max_value=5, step=1)
+    # tweet_id = factory.Faker('pyint', min_value=1, max_value=5, step=1)
     url = factory.Faker('file_path', extension='jpg')
 
 
