@@ -31,6 +31,30 @@ def create_tweet():
     )
 
 
+@bp.route('/<int:id_tweet>', methods=('DELETE',))
+def delete_tweet(id_tweet):
+    db = database.get_db()
+    api_key = request.headers.get('Api-Key')
+    user = db.execute(select(models.User).where(models.User.api_key == api_key)).scalar()
+    tweet_for_deleted = db.get(models.Tweet, id_tweet)
+    if user.id == tweet_for_deleted.author_id:
+        db.delete(tweet_for_deleted)
+        db.commit()
+        return jsonify(
+            {
+                'result': True
+            }
+        )
+    return jsonify(
+        {
+            'result': False,
+            'error_type': 'Forbidden',
+            'error_massage': 'User can only delete their own blogs',
+        }
+    ), 403
+
+
+
 @bp.route('/', methods=('GET',))
 def get_tweets():
     db = database.get_db()
