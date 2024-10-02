@@ -36,6 +36,13 @@ def upload_medias():
                 'media_id': file_obj.id
             }
         )
+    return jsonify(
+        {
+            'result': False,
+            'error_type': 'File is not supported',
+            'error_massage': 'This file extension is prohibited for downloading. Only .jpeg and .jpg are allowed.',
+        }
+    )
 
 
 def allowed_file(filename_full):
