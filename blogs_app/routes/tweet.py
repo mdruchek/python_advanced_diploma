@@ -54,6 +54,49 @@ def delete_tweet(id_tweet):
     ), 403
 
 
+@bp.route('/<int:id_tweet>/likes', methods=('POST',))
+def create_like_on_blog(id_tweet):
+    db = database.get_db()
+    api_key = request.headers.get('Api-Key')
+    user = db.execute(select(models.User).where(models.User.api_key == api_key)).scalar()
+    tweet_for_like = db.get(models.Tweet, id_tweet)
+    if not user.id == tweet_for_like.author_id:
+        like = models.Like(user_id=user.id)
+        tweet_for_like.likes.append(like)
+        db.commit()
+        return jsonify(
+            {
+                'result': True
+            }
+        )
+    return jsonify(
+        {
+            'result': False,
+            'error_type': 'Forbidden',
+            'error_massage': "You can only like other people's blogs",
+        }
+    ), 403
+
+
+@bp.route('/<int:id_tweet>/likes', methods=('DELETE',))
+def delete_like_with_blog(id_tweet):
+    db = database.get_db()
+    api_key = request.headers.get('Api-Key')
+    user = db.execute(select(models.User).where(models.User.api_key == api_key)).scalar()
+
+    like = db.execute(
+        select(models.Like)
+        .where(models.Like.user_id == user.id and models.Like.tweet_id == id_tweet)
+    ).scalar()
+    
+    db.delete(like)
+    db.commit()
+    return jsonify(
+        {
+            'result': True
+        }
+    )
+
 
 @bp.route('/', methods=('GET',))
 def get_tweets():
