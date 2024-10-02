@@ -1,5 +1,6 @@
-from flask import Blueprint, request, jsonify
+import json
 
+from flask import Blueprint, request, jsonify
 from sqlalchemy import select
 
 from blogs_app import database
@@ -16,13 +17,16 @@ def create_tweet():
     api_key = request.headers.get('Api-Key')
     request_data = request.json
     user = db.execute(select(models.User).where(models.User.api_key == api_key)).scalar()
-    tweet = models.Tweet(content=request_data['tweet_data'])
+    tweet = models.Tweet(
+        content=request_data['tweet_data'],
+        media_ids=json.dumps(request_data.pop('tweet_media_ids'))
+    )
     user.tweets.append(tweet)
     db.commit()
     return jsonify(
         {
             'result': True,
-            'tweet_id': tweet.id
+            'tweet_id': tweet.id,
         }
     )
 
