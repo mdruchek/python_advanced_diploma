@@ -1,9 +1,9 @@
 class ResponsesAPI:
     @classmethod
     def result_true(cls, additional_fields={}):
-        return {
-            'result': True
-        }.update(additional_fields)
+        response = {'result': True}
+        response.update(additional_fields)
+        return response
 
     @classmethod
     def error_not_found(cls, message):
