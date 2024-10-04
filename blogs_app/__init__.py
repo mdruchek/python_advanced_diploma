@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory
 
 from .config import ProductionConfig, DevelopmentConfig
 
@@ -41,5 +41,9 @@ def create_app():
     @app.route('/')
     def index():
         return render_template('index.html')
+
+    @app.route('/uploads/<path:file_name>')
+    def download_file(file_name: str):
+        return send_from_directory('', file_name.replace('\\', '/'))
 
     return app
