@@ -17,20 +17,9 @@ def create_follow(author_id):
     user = db.execute(select(models.User).where(models.User.api_key == api_key)).scalar()
     author = db.get(models.User, author_id)
     if not author:
-        return jsonify(
-            responses_api.ResponsesAPI.error(
-                type='Not found',
-                message=f"Author with id={author_id} not found"
-            )
-        ), 404
-
+        return jsonify(responses_api.ResponsesAPI.error_not_found(f"Author with id={author_id} not found")), 404
     if user.id == author.id:
-        return jsonify(
-            responses_api.ResponsesAPI.error(
-                type='Forbidden',
-                message="The user cannot follow himself"
-            )
-        ), 403
+        return jsonify(responses_api.ResponsesAPI.error_forbidden("The user cannot follow himself")), 403
 
     follow_for_create = models.Follow(author_id=author_id, follower=user.id)
     db.add(follow_for_create)
