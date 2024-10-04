@@ -27,7 +27,7 @@ def upload_medias():
         file_path = os.path.join(user_folder, filename_full)
         file.save(file_path)
 
-        file_obj = models.Media(url=file_path)
+        file_obj = models.Media(url=os.path.join(current_app.config['UPLOAD_FOLDER'], api_key, filename_full))
         db.add(file_obj)
         db.commit()
         return jsonify(
