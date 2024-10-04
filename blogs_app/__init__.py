@@ -42,8 +42,8 @@ def create_app():
     def index():
         return render_template('index.html')
 
-    @app.route('/uploads/<path:file_name>')
-    def download_file(file_name: str):
-        return send_from_directory('', file_name.replace('\\', '/'))
+    @app.route('/<path:relative_link>')
+    def download_file(relative_link: str):
+        return send_from_directory(app.instance_path, relative_link)
 
     return app
