@@ -20,3 +20,11 @@ class ResponsesAPI:
             'error_type': 'Forbidden',
             'error_massage': message,
         }
+
+    @classmethod
+    def file_not_found_error(cls, message):
+        return {
+            'result': False,
+            'error_type': 'FileNotFoundError',
+            'error_massage': message,
+        }
