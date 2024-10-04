@@ -1,7 +1,9 @@
 import json
+import os
+import pathlib
 
-from flask import Blueprint, request, jsonify, url_for
-from sqlalchemy import select
+from flask import Blueprint, request, jsonify, url_for, current_app
+from sqlalchemy import select, delete
 
 from blogs_app import database
 from blogs_app import models
@@ -35,11 +37,28 @@ def delete_tweet(tweet_id):
     tweet_for_deleted = db.get(models.Tweet, tweet_id)
     if not tweet_for_deleted:
         return jsonify(responses_api.ResponsesAPI.error_not_found(f"Tweet with id={tweet_id} not found")), 404
-    if user.id == tweet_for_deleted.author_id:
-        db.delete(tweet_for_deleted)
-        db.commit()
-        return jsonify(responses_api.ResponsesAPI.result_true())
-    return jsonify(responses_api.ResponsesAPI.error_forbidden('User can only delete their own blogs')), 403
+    if not user.id == tweet_for_deleted.author_id:
+        return jsonify(responses_api.ResponsesAPI.error_forbidden('User can only delete their own blogs')), 403
+    if tweet_for_deleted.media_ids:
+        media_ids = json.loads(tweet_for_deleted.media_ids)
+        url_medias_for_delete = db.execute(
+            select(models.Media.url)
+            .where(models.Media.id.in_(media_ids))
+        ).scalars()
+        for url in url_medias_for_delete:
+            path_file_for_delete = os.path.join(current_app.instance_path, url)
+            try:
+                os.remove(path_file_for_delete)
+            except FileNotFoundError:
+                return jsonify(
+                    responses_api.ResponsesAPI.file_not_found_error(
+                        f'No such file or directory: {path_file_for_delete}'
+                    )
+                )
+    db.execute(delete(models.Media).where(models.Media.id.in_(tweet_for_deleted.media_ids)))
+    db.delete(tweet_for_deleted)
+    db.commit()
+    return jsonify(responses_api.ResponsesAPI.result_true())
 
 
 @bp.route('/<int:tweet_id>/likes', methods=('POST',))
@@ -89,7 +108,7 @@ def get_tweets():
         if media_ids_json:
             media_ids_list = json.loads(media_ids_json)
             media_links = db.execute(select(models.Media.url).where(models.Media.id.in_(media_ids_list))).scalars().all()
-            tweet_dict['attachments'] = [url_for('download_file', file_name=link) for link in media_links]
+            tweet_dict['attachments'] = [url_for('download_file', relative_link=link) for link in media_links]
         for like_dict in tweet_dict['likes']:
             like_dict['user_id'] = like_dict.pop('id')
         tweets_list_of_dict.append(tweet_dict)
