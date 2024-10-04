@@ -1,6 +1,6 @@
 import json
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, url_for
 from sqlalchemy import select
 
 from blogs_app import database
@@ -77,6 +77,7 @@ def delete_like_with_blog(id_tweet):
 @bp.route('/', methods=('GET',))
 def get_tweets():
     db = database.get_db()
+    api_key = request.headers.get('Api-Key')
     tweets = db.execute(select(models.Tweet).order_by(models.Tweet.id.desc())).scalars().all()
     tweets_list_of_dict = []
     for tweet in tweets:
@@ -84,11 +85,13 @@ def get_tweets():
         tweet_dict.pop('author_id')
         tweet_dict['author'] = tweet.author.to_dict(exclude=('api_key',))
         tweet_dict['likes'] = [like.user.to_dict(exclude=('api_key',)) for like in tweet.likes]
-        # tweet_dict['attachments'] = tweet_dict.pop('media_ids')
-        tweet_dict.pop('media_ids')
+        media_ids_json = tweet_dict.pop('media_ids')
+        if media_ids_json:
+            media_ids_list = json.loads(media_ids_json)
+            media_links = db.execute(select(models.Media.url).where(models.Media.id.in_(media_ids_list))).scalars().all()
+            tweet_dict['attachments'] = [url_for('download_file', file_name=link) for link in media_links]
         for like_dict in tweet_dict['likes']:
             like_dict['user_id'] = like_dict.pop('id')
         tweets_list_of_dict.append(tweet_dict)
-    print(tweets_list_of_dict)
-    print(responses_api.ResponsesAPI.result_true())
+        print(tweets_list_of_dict)
     return jsonify(responses_api.ResponsesAPI.result_true({'tweets': tweets_list_of_dict}))
