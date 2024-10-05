@@ -20,6 +20,8 @@ def create_tweet():
     api_key = request.headers.get('Api-Key')
     request_data = request.json
     user = db.execute(select(models.User).where(models.User.api_key == api_key)).scalar()
+    if not user:
+        return jsonify(responses_api.ResponsesAPI.error_not_found(f'User with api-key {api_key} not found'))
     tweet = models.Tweet(
         content=request_data['tweet_data'],
         media_ids=json.dumps(request_data.pop('tweet_media_ids'))
@@ -34,6 +36,8 @@ def delete_tweet(tweet_id):
     db = database.get_db()
     api_key = request.headers.get('Api-Key')
     user = db.execute(select(models.User).where(models.User.api_key == api_key)).scalar()
+    if not user:
+        return jsonify(responses_api.ResponsesAPI.error_not_found(f"User with api_key {api_key} not found")), 404
     tweet_for_deleted = db.get(models.Tweet, tweet_id)
     if not tweet_for_deleted:
         return jsonify(responses_api.ResponsesAPI.error_not_found(f"Tweet with id={tweet_id} not found")), 404
@@ -55,7 +59,11 @@ def delete_tweet(tweet_id):
                         f'No such file or directory: {path_file_for_delete}'
                     )
                 )
-    db.execute(delete(models.Media).where(models.Media.id.in_(tweet_for_deleted.media_ids)))
+            finally:
+                db.execute(delete(models.Media).where(models.Media.id.in_(json.loads(tweet_for_deleted.media_ids))))
+                db.delete(tweet_for_deleted)
+                db.commit()
+    db.execute(delete(models.Media).where(models.Media.id.in_(json.loads(tweet_for_deleted.media_ids))))
     db.delete(tweet_for_deleted)
     db.commit()
     return jsonify(responses_api.ResponsesAPI.result_true())
@@ -112,5 +120,4 @@ def get_tweets():
         for like_dict in tweet_dict['likes']:
             like_dict['user_id'] = like_dict.pop('id')
         tweets_list_of_dict.append(tweet_dict)
-        print(tweets_list_of_dict)
     return jsonify(responses_api.ResponsesAPI.result_true({'tweets': tweets_list_of_dict}))
