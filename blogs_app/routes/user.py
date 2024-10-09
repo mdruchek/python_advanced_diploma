@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from sqlalchemy import select
 
 from blogs_app import database
-from blogs_app import models
+from blogs_app.models import User, Follow
 from blogs_app import responses_api
 
 bp = Blueprint('users', __name__, url_prefix='/api/users')
@@ -12,14 +12,14 @@ bp = Blueprint('users', __name__, url_prefix='/api/users')
 def create_follow(author_id):
     db = database.get_db()
     api_key = request.headers.get('Api-Key')
-    user = db.execute(select(models.User).where(models.User.api_key == api_key)).scalar()
-    author = db.get(models.User, author_id)
+    user = db.execute(select(User).where(User.api_key == api_key)).scalar()
+    author = db.get(User, author_id)
     if not author:
         return jsonify(responses_api.ResponsesAPI.error_not_found(f"Author with id={author_id} not found")), 404
     if user.id == author.id:
         return jsonify(responses_api.ResponsesAPI.error_forbidden("The user cannot follow himself")), 403
 
-    follow_for_create = models.Follow(author_id=author_id, follower=user.id)
+    follow_for_create = Follow(author_id=author_id, follower=user.id)
     db.add(follow_for_create)
     db.commit()
     return jsonify(responses_api.ResponsesAPI.result_true())
@@ -29,8 +29,8 @@ def create_follow(author_id):
 def delete_follow(author_id):
     db = database.get_db()
     api_key = request.headers.get('Api-Key')
-    user = db.execute(select(models.User).where(models.User.api_key == api_key)).scalar()
-    author = db.get(models.User, author_id)
+    user = db.execute(select(User).where(User.api_key == api_key)).scalar()
+    author = db.get(User, author_id)
 
     if not author:
         return jsonify(responses_api.ResponsesAPI.error_not_found(f"Author with id={author_id} not found")), 404
@@ -40,11 +40,11 @@ def delete_follow(author_id):
 
     follow_for_delete = db.execute(
         select(
-            models.Follow
+            Follow
         )
         .where(
-            models.Follow.follower_id == user.id
-            and models.Follow.author_id == author.id
+            Follow.follower_id == user.id
+            and Follow.author_id == author.id
         )
     ).scalar()
 
@@ -56,15 +56,18 @@ def delete_follow(author_id):
 @bp.route('/me', methods=('GET',))
 def me():
     api_key = request.headers.get('Api-Key')
-    db = database.get_db()
 
+    if api_key == 'test':
+        return jsonify(responses_api.ResponsesAPI.result_true({'user': {'name': 'test'}}))
+
+    db = database.get_db()
     user = db.execute(
         select(
-            models.User,
-            models.Follow.author_id,
-            models.Follow.follower_id
+            User,
+            Follow.author_id,
+            Follow.follower_id
         ).where(
-            models.User.api_key == api_key
+            User.api_key == api_key
         )
     ).scalar()
 
@@ -82,11 +85,11 @@ def get_user_by_id(user_id):
 
     user = db.execute(
         select(
-            models.User,
-            models.Follow.author_id,
-            models.Follow.follower_id
+            User,
+            Follow.author_id,
+            Follow.follower_id
         ).where(
-            models.User.id == user_id
+            User.id == user_id
         )
     ).scalar()
 

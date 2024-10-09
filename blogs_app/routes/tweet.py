@@ -1,49 +1,67 @@
 import json
 import os
-import pathlib
+from collections.abc import Sequence
+from typing import Optional
 
-from flask import Blueprint, request, jsonify, url_for, current_app
+from flask import Blueprint, request, jsonify, url_for, current_app, Response
 from sqlalchemy import select, delete
+from sqlalchemy.orm import Session
 
 from blogs_app import database
-from blogs_app import models
+from blogs_app.models import User, Tweet, Media, Like
 from blogs_app import responses_api
-from blogs_app import schemas
 
 
 bp = Blueprint('tweet', __name__, url_prefix='/api/tweets')
 
 
 @bp.route('/', methods=('POST',))
-def create_tweet():
-    db = database.get_db()
-    api_key = request.headers.get('Api-Key')
-    request_data = request.json
-    user = db.execute(select(models.User).where(models.User.api_key == api_key)).scalar()
+def create_tweet() -> tuple[Response, Optional[int]]:
+    """
+    Эндпоинт создания твита
+
+    :return: Ответ удачного или не удачного создания твита
+    :rtype: Response
+    """
+
+    db: Session = database.get_db()
+    api_key: str = request.headers.get('Api-Key')
+    request_data: Optional[dict] = request.json
+    user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
 
     if not user:
-        return jsonify(responses_api.ResponsesAPI.error_not_found(f'User with api-key {api_key} not found'))
+        return jsonify(responses_api.ResponsesAPI.error_not_found(f'User with api-key {api_key} not found')), 404
 
-    tweet = models.Tweet(
+    tweet: Tweet = Tweet(
         content=request_data['tweet_data'],
         media_ids=json.dumps(request_data.pop('tweet_media_ids'))
     )
 
     user.tweets.append(tweet)
     db.commit()
-    return jsonify(responses_api.ResponsesAPI.result_true({'tweet_id': tweet.id}))
+    return jsonify(responses_api.ResponsesAPI.result_true({'tweet_id': tweet.id})), 200
 
 
 @bp.route('/<int:tweet_id>', methods=('DELETE',))
-def delete_tweet(tweet_id):
-    db = database.get_db()
-    api_key = request.headers.get('Api-Key')
-    user = db.execute(select(models.User).where(models.User.api_key == api_key)).scalar()
+def delete_tweet(tweet_id: int) -> tuple[Response, int]:
+    """
+    Эндпоинт удаления твита
+
+    :param tweet_id: id твита
+    :type tweet_id: int
+
+    :return: Ответ удачного или не удачного удаления твита
+    :rtype: Response
+    """
+
+    db: Session = database.get_db()
+    api_key: str = request.headers.get('Api-Key')
+    user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
 
     if not user:
         return jsonify(responses_api.ResponsesAPI.error_not_found(f"User with api_key {api_key} not found")), 404
 
-    tweet_for_deleted = db.get(models.Tweet, tweet_id)
+    tweet_for_deleted: Optional[Tweet] = db.get(Tweet, tweet_id)
 
     if not tweet_for_deleted:
         return jsonify(responses_api.ResponsesAPI.error_not_found(f"Tweet with id={tweet_id} not found")), 404
@@ -52,40 +70,50 @@ def delete_tweet(tweet_id):
         return jsonify(responses_api.ResponsesAPI.error_forbidden('User can only delete their own blogs')), 403
 
     if tweet_for_deleted.media_ids:
-        media_ids = json.loads(tweet_for_deleted.media_ids)
+        media_ids: list[int] = json.loads(tweet_for_deleted.media_ids)
 
-        url_medias_for_delete = db.execute(
-            select(models.Media.url)
-            .where(models.Media.id.in_(media_ids))
-        ).scalars()
+        url_medias_for_delete: Sequence[str] = db.execute(
+            select(Media.url)
+            .where(Media.id.in_(media_ids))
+        ).scalars().all()
 
         for url in url_medias_for_delete:
-            path_file_for_delete = os.path.join(current_app.instance_path, url)
+            path_file_for_delete: str = os.path.join(current_app.instance_path, url)
 
             try:
                 os.remove(path_file_for_delete)
             except FileNotFoundError:
                 pass
 
-        db.execute(delete(models.Media).where(models.Media.id.in_(media_ids)))
+        db.execute(delete(Media).where(Media.id.in_(media_ids)))
 
     db.delete(tweet_for_deleted)
     db.commit()
-    return jsonify(responses_api.ResponsesAPI.result_true())
+    return jsonify(responses_api.ResponsesAPI.result_true()), 200
 
 
 @bp.route('/<int:tweet_id>/likes', methods=('POST',))
-def create_like_on_blog(tweet_id):
+def create_like_on_tweet(tweet_id: int) -> tuple[Response, int]:
+    """
+    Эндпоинт добавления лайка на твит
+
+    :param tweet_id: id твита
+    :type tweet_id: int
+
+    :return: Ответ удачного или не удачного добавлния твита
+    :rtype: Response
+    """
+
     db = database.get_db()
     api_key = request.headers.get('Api-Key')
-    user = db.execute(select(models.User).where(models.User.api_key == api_key)).scalar()
-    tweet_for_like = db.get(models.Tweet, tweet_id)
+    user = db.execute(select(User).where(User.api_key == api_key)).scalar()
+    tweet_for_like = db.get(Tweet, tweet_id)
 
     if not tweet_for_like:
         return jsonify(responses_api.ResponsesAPI.error_not_found(f"Tweet with id={tweet_id} not found")), 404
 
     if not user.id == tweet_for_like.author_id:
-        like = models.Like(user_id=user.id)
+        like = Like(user_id=user.id)
         tweet_for_like.likes.append(like)
         db.commit()
         return jsonify(responses_api.ResponsesAPI.result_true())
@@ -97,11 +125,11 @@ def create_like_on_blog(tweet_id):
 def delete_like_with_blog(id_tweet):
     db = database.get_db()
     api_key = request.headers.get('Api-Key')
-    user = db.execute(select(models.User).where(models.User.api_key == api_key)).scalar()
+    user = db.execute(select(User).where(User.api_key == api_key)).scalar()
 
     like = db.execute(
-        select(models.Like)
-        .where(models.Like.user_id == user.id and models.Like.tweet_id == id_tweet)
+        select(Like)
+        .where(Like.user_id == user.id and Like.tweet_id == id_tweet)
     ).scalar()
     
     db.delete(like)
@@ -113,7 +141,7 @@ def delete_like_with_blog(id_tweet):
 def get_tweets():
     db = database.get_db()
     api_key = request.headers.get('Api-Key')
-    tweets = db.execute(select(models.Tweet).order_by(models.Tweet.id.desc())).scalars().all()
+    tweets = db.execute(select(Tweet).order_by(Tweet.id.desc())).scalars().all()
     tweets_list_of_dict = []
 
     for tweet in tweets:
@@ -125,7 +153,7 @@ def get_tweets():
 
         if media_ids_json:
             media_ids_list = json.loads(media_ids_json)
-            media_links = db.execute(select(models.Media.url).where(models.Media.id.in_(media_ids_list))).scalars().all()
+            media_links = db.execute(select(Media.url).where(Media.id.in_(media_ids_list))).scalars().all()
             tweet_dict['attachments'] = [url_for('download_file', relative_link=link.replace('\\', '/')) for link in media_links]
 
         for like_dict in tweet_dict['likes']:
