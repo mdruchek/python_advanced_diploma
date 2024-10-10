@@ -8,7 +8,7 @@ from sqlalchemy import select, delete, ScalarResult
 from sqlalchemy.orm import Session
 
 from blogs_app import database
-from blogs_app.models import User, Tweet, Media, Like
+from blogs_app.models import User, Tweet, Media, Like, Follow
 from blogs_app import responses_api
 
 
@@ -146,8 +146,9 @@ def delete_like_with_blog(tweet_id):
 
     db.execute(
         delete(Like)
-        .where(Like.user_id == user.id and Like.tweet_id == tweet_id)
-    ).scalar()
+        .where(Like.user_id == user.id)
+        .where(Like.tweet_id == tweet_id)
+    )
 
     db.commit()
     return jsonify(responses_api.ResponsesAPI.result_true())
@@ -192,4 +193,4 @@ def get_tweets():
 
         tweets_list_of_dict.append(tweet_dict)
 
-    return jsonify(responses_api.ResponsesAPI.result_true({'tweets': tweets_list_of_dict}))
+    return jsonify(responses_api.ResponsesAPI.result_true({'tweets': tweets_list_of_dict})) 
