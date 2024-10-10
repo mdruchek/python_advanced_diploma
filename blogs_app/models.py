@@ -18,9 +18,12 @@ class User(Base):
     Модель User
 
     Attributes:
-        id (int)
-        name (str)
-        api_key (str)
+        id (int): первичный ключ
+        name (str): имя пользователя
+        api_key (str): api_key пользователя
+
+    Methods:
+        to_dict: преобразование экземпляра модели в словарь
     """
 
     __tablename__ = 'user'
@@ -40,6 +43,16 @@ class User(Base):
     follows_follower: Mapped[list['Follow']] = relationship(back_populates='follower', foreign_keys='[Follow.follower_id]')
 
     def to_dict(self, exclude=()):
+        """
+        Преобразование модели в словарь
+
+        :param exclude: поля модели исключить из возвращенного словаря
+        :type exclude: tuple
+
+        :return: словарь атрибутов модели
+        :rtype: dict
+        """
+
         return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in exclude}
 
 
@@ -48,10 +61,13 @@ class Tweet(Base):
     Модель Tweet
 
     Attributes:
-        id (int)
-        content (str)
-        author_id (int)
-        media_ids (json)
+        id (int): первичный ключ
+        content (str): содержание твита
+        author_id (int): id автора
+        media_ids (json): id медиафайлов
+
+    Methods:
+    to_dict: преобразование экземпляра модели в словарь
     """
 
     __tablename__ = 'tweet'
@@ -75,6 +91,13 @@ class Tweet(Base):
     # )
 
     def to_dict(self):
+        """
+        Преобразование модели в словарь
+
+        :return: словарь атрибутов модели
+        :rtype: dict
+        """
+
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
@@ -83,9 +106,12 @@ class Like(Base):
     Модель Like
 
     Attributes:
-        id (int)
-        user_id (int)
-        tweet_id (int)
+        id (int): первичный ключ
+        user_id (int): id пользователя
+        tweet_id (int): id твита
+
+    Methods:
+        to_dict: преобразование экземпляра модели в словарь
     """
 
     __tablename__ = 'like'
@@ -102,6 +128,13 @@ class Like(Base):
     tweet: Mapped['Tweet'] = relationship(back_populates='likes')
 
     def to_dict(self):
+        """
+        Преобразование модели в словарь
+
+        :return: словарь атрибутов модели
+        :rtype: dict
+        """
+
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
@@ -110,9 +143,11 @@ class Media(Base):
     Модель Media
 
     Attributes:
-        id (int)
-        tweet_id (int)
-        url (str)
+        id (int): первичный ключ
+        url (str): url медиафайла
+
+    Methods:
+        to_dict: преобразование экземпляра модели в словарь
     """
 
     __tablename__ = 'media'
@@ -125,6 +160,13 @@ class Media(Base):
     # tweet: Mapped['Tweet'] = relationship(back_populates='medias')
 
     def to_dict(self):
+        """
+        Преобразование модели в словарь
+
+        :return: словарь атрибутов модели
+        :rtype: dict
+        """
+
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
@@ -133,9 +175,12 @@ class Follow(Base):
     Модель Follow
 
     Attributes:
-        id (str)
-        author_id (str)
-        follower_id (str)
+        id (str): первичный ключ
+        author_id (str): id автора
+        follower_id (str): id подписчика
+
+    Methods:
+        to_dict: преобразование экземпляра модели в словарь
     """
 
     __tablename__ = 'follow'
@@ -152,4 +197,11 @@ class Follow(Base):
     follower: Mapped['User'] = relationship(foreign_keys=[follower_id])
 
     def to_dict(self):
+        """
+        Преобразование модели в словарь
+
+        :return: словарь атрибутов модели
+        :rtype: dict
+        """
+
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
