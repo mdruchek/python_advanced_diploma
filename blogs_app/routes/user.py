@@ -38,7 +38,7 @@ def create_follow(author_id):
     if user.id == author.id:
         return jsonify(responses_api.ResponsesAPI.error_forbidden("The user cannot follow himself")), 403
 
-    follow_for_create: Follow = Follow(author_id=author_id, follower=user.id)
+    follow_for_create: Follow = Follow(author_id=author_id, follower_id=user.id)
     db.add(follow_for_create)
     db.commit()
     return jsonify(responses_api.ResponsesAPI.result_true())
@@ -74,7 +74,7 @@ def delete_follow(author_id):
     db.execute(
         delete(Follow)
         .where(Follow.follower_id == user.id and Follow.author_id == author.id)
-    ).scalar()
+    )
 
     db.commit()
     return jsonify(responses_api.ResponsesAPI.result_true())
@@ -97,16 +97,14 @@ def me():
     db: Session = database.get_db()
     user: Optional[User] = db.execute(
         select(
-            User,
-            Follow.author_id,
-            Follow.follower_id
+            User
         ).where(
             User.api_key == api_key
         )
     ).scalar()
 
     if user:
-        user_dict: dict = user.to_dict()
+        user_dict: dict = user.to_dict(exclude=('api_key',))
         user_dict['followers']: list[dict] = [f.follower.to_dict(exclude=('api_key',)) for f in user.follows_author]
         user_dict['following']: list[dict] = [f.author.to_dict(exclude=('api_key',)) for f in user.follows_follower]
         return jsonify(responses_api.ResponsesAPI.result_true({'user': user_dict}))
@@ -131,15 +129,13 @@ def get_user_by_id(user_id):
     user: Optional[User] = db.execute(
         select(
             User,
-            Follow.author_id,
-            Follow.follower_id
         ).where(
             User.id == user_id
         )
     ).scalar()
 
     if user:
-        user_dict: dict = user.to_dict()
+        user_dict: dict = user.to_dict(exclude=('api_key',))
         user_dict['followers']: list[dict] = [f.follower.to_dict(exclude=('api_key',)) for f in user.follows_author]
         user_dict['following']: list[dict] = [f.author.to_dict(exclude=('api_key',)) for f in user.follows_follower]
         return jsonify(responses_api.ResponsesAPI.result_true({'user': user_dict}))
