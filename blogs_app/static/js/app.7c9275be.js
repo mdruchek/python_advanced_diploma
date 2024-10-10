@@ -2613,7 +2613,7 @@
                     return e.abrupt(
                       "return",
                       B({
-                        type: "delete",
+                        type: "post",
                         path: "/api/users/".concat(t, "/follow"),
                       })
                     );
@@ -2642,7 +2642,7 @@
                       "return",
                       B({
                         type: "delete",
-                        path: "/api/tweets/".concat(t, "/follow"),
+                        path: "/api/users/".concat(t, "/follow"),
                       })
                     );
                   case 1:
