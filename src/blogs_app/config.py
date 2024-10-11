@@ -41,7 +41,7 @@ class DevelopmentConfig(Config):
 
     ENVIRONMENT = 'dev'
     DATABASE = 'sqlite:///{instance_path}/dev_database.db'
-    ECHO_ENGINE_DATABASE = True
+    ECHO_ENGINE_DATABASE = False
     SECRET_KEY = 'dev'
 
 
@@ -55,5 +55,5 @@ class TestingConfig(Config):
         TESTING (bool): режим тестирования
     """
 
-    DATABASE_URI = 'sqlite:///:memory:'
+    DATABASE = 'sqlite:///:memory:'
     TESTING = True

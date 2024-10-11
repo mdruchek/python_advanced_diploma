@@ -4,11 +4,11 @@ from collections.abc import Sequence
 from typing import Optional
 
 from flask import Blueprint, request, jsonify, url_for, current_app, Response
-from sqlalchemy import select, delete, ScalarResult
+from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
 
 from blogs_app import database
-from blogs_app.models import User, Tweet, Media, Like, Follow
+from blogs_app.models import User, Tweet, Media, Like
 from blogs_app import responses_api
 
 
@@ -193,4 +193,4 @@ def get_tweets():
 
         tweets_list_of_dict.append(tweet_dict)
 
-    return jsonify(responses_api.ResponsesAPI.result_true({'tweets': tweets_list_of_dict})) 
+    return jsonify(responses_api.ResponsesAPI.result_true({'tweets': tweets_list_of_dict}))

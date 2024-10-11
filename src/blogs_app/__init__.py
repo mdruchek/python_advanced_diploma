@@ -19,6 +19,7 @@ def create_app():
 
     app: Flask = Flask(
         __name__,
+        instance_path=os.path.join(APP_PATH, '..', '..', 'instance'),
         instance_relative_config=True,
         template_folder=TEMPLATE_PATH
     )

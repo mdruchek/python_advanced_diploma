@@ -9,7 +9,7 @@ from blogs_app import models
 from blogs_app import factories
 
 
-if current_app.config['ENVIRONMENT'] == 'dev':
+if current_app.config['ENVIRONMENT'] == 'dev' and not current_app.config['TESTING']:
     current_app.config['DATABASE'] = (
         current_app.config['DATABASE']
         .format(
@@ -50,11 +50,15 @@ def init_db():
     Функция инициализации базы данных для разработки
     """
 
-    models.Base.metadata.drop_all(bind=engine)
+    drop_all_models_from_db()
     models.Base.metadata.create_all(bind=engine)
     for _ in range(5):
         factories.UserFactory()
         factories.TweetFactory()
+
+
+def drop_all_models_from_db():
+    models.Base.metadata.drop_all(bind=engine)
 
 
 @click.command('init-dev-db')
