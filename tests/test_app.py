@@ -7,6 +7,6 @@ def test_app_config(app):
 
 
 @pytest.mark.parametrize('route', ['/api/tweets/', '/api/users/1'])
-def test__get_route_status(web_client, route):
+def test_get_route_status(web_client, route):
     result = web_client.get(route)
     assert result.status_code == 200

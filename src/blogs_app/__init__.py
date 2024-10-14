@@ -2,14 +2,13 @@ import os
 
 from flask import Flask, render_template, send_from_directory
 
-from .config import ProductionConfig, DevelopmentConfig
-
+from .config import ProductionConfig, DevelopmentConfig, TestingConfig
 
 APP_PATH: str = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH: str = os.path.join(APP_PATH, 'static')
 
 
-def create_app():
+def create_app(config_app=DevelopmentConfig):
     """
     Функция создания и настройки экземпляра приложения Flask
 
@@ -24,7 +23,7 @@ def create_app():
         template_folder=TEMPLATE_PATH
     )
 
-    app.config.from_object(DevelopmentConfig()) # конфигурация приложения
+    app.config.from_object(config_app) # конфигурация приложения
 
     # создание папки приложения
     try:

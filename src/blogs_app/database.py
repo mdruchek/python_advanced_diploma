@@ -9,7 +9,7 @@ from blogs_app import models
 from blogs_app import factories
 
 
-if current_app.config['ENVIRONMENT'] == 'dev' and not current_app.config['TESTING']:
+if not current_app.config['TESTING'] and current_app.config['ENVIRONMENT'] == 'dev':
     current_app.config['DATABASE'] = (
         current_app.config['DATABASE']
         .format(

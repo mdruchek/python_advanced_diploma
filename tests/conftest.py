@@ -7,8 +7,7 @@ from blogs_app.config import TestingConfig
 
 @pytest.fixture
 def app():
-    _app = create_app()
-    _app.config.from_object(TestingConfig)
+    _app = create_app(config_app=TestingConfig)
     with _app.app_context():
         from blogs_app.database import init_db, drop_all_models_from_db
     init_db()
