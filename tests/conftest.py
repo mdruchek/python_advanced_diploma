@@ -2,6 +2,7 @@ import pytest
 
 from blogs_app import create_app
 from blogs_app.config import TestingConfig
+from blogs_app.models import User
 
 
 
@@ -28,3 +29,15 @@ def db(app):
 def web_client(app):
     client = app.test_client()
     return client
+
+
+@pytest.fixture
+def runner(app):
+    return app.test_cli_runner()
+
+
+@pytest.fixture
+def create_user(db):
+    user = User(name='test_user', api_key='test_api_key')
+    db.add(user)
+    db.commit()
