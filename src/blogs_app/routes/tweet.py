@@ -30,7 +30,11 @@ def create_tweet() -> tuple[Response, Optional[int]]:
     user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
 
     if not user:
-        return jsonify(responses_api.ResponsesAPI.error_forbidden(f'User with api-key {api_key} not found')), 403
+        return jsonify(
+            responses_api.ResponsesAPI.error_forbidden(
+                f'Access is denied. User with api-key {api_key} not found'
+            )
+        ), 403
 
     tweet: Tweet = Tweet(
         content=request_data['tweet_data'],
@@ -59,7 +63,11 @@ def delete_tweet(tweet_id: int) -> tuple[Response, int]:
     user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
 
     if not user:
-        return jsonify(responses_api.ResponsesAPI.error_not_found(f"User with api_key {api_key} not found")), 404
+        return jsonify(
+            responses_api.ResponsesAPI.error_forbidden(
+                f'Access is denied. User with api-key {api_key} not found'
+            )
+        ), 403
 
     tweet_for_deleted: Optional[Tweet] = db.get(Tweet, tweet_id)
 
@@ -109,7 +117,11 @@ def create_like_on_tweet(tweet_id: int) -> tuple[Response, int]:
     user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
 
     if not user:
-        return jsonify(responses_api.ResponsesAPI.error_not_found(f"User with api_key {api_key} not found")), 404
+        return jsonify(
+            responses_api.ResponsesAPI.error_forbidden(
+                f'Access is denied. User with api-key {api_key} not found'
+            )
+        ), 403
 
     tweet_for_like: Optional[Tweet] = db.get(Tweet, tweet_id)
 
@@ -122,7 +134,7 @@ def create_like_on_tweet(tweet_id: int) -> tuple[Response, int]:
         db.commit()
         return jsonify(responses_api.ResponsesAPI.result_true()), 200
 
-    return jsonify(responses_api.ResponsesAPI.error_forbidden("You can only like other people's blogs")), 403
+    return jsonify(responses_api.ResponsesAPI.error_forbidden("You can only like other people's tweets")), 403
 
 
 @bp.route('/<int:tweet_id>/likes', methods=('DELETE',))
@@ -142,7 +154,11 @@ def delete_like_with_tweet(tweet_id):
     user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
 
     if not user:
-        return jsonify(responses_api.ResponsesAPI.error_not_found(f"User with api_key {api_key} not found")), 404
+        return jsonify(
+            responses_api.ResponsesAPI.error_forbidden(
+                f'Access is denied. User with api-key {api_key} not found'
+            )
+        ), 403
 
     db.execute(
         delete(Like)

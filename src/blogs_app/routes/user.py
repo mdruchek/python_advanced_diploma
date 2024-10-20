@@ -28,7 +28,11 @@ def create_follow(author_id):
     user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
 
     if not user:
-        return jsonify(responses_api.ResponsesAPI.error_not_found(f"User with api_key {api_key} not found")), 404
+        return jsonify(
+            responses_api.ResponsesAPI.error_forbidden(
+                f'Access is denied. User with api-key {api_key} not found'
+            )
+        ), 403
 
     author = db.get(User, author_id)
 
@@ -61,7 +65,11 @@ def delete_follow(author_id):
     user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
 
     if not user:
-        return jsonify(responses_api.ResponsesAPI.error_not_found(f"User with api_key {api_key} not found")), 404
+        return jsonify(
+            responses_api.ResponsesAPI.error_forbidden(
+                f'Access is denied. User with api-key {api_key} not found'
+            )
+        ), 403
 
     author: Optional[User] = db.get(User, author_id)
 
@@ -103,13 +111,17 @@ def me():
         )
     ).scalar()
 
-    if user:
-        user_dict: dict = user.to_dict(exclude=('api_key',))
-        user_dict['followers']: list[dict] = [f.follower.to_dict(exclude=('api_key',)) for f in user.follows_author]
-        user_dict['following']: list[dict] = [f.author.to_dict(exclude=('api_key',)) for f in user.follows_follower]
-        return jsonify(responses_api.ResponsesAPI.result_true({'user': user_dict}))
+    if not user:
+        return jsonify(
+            responses_api.ResponsesAPI.error_forbidden(
+                f'Access is denied. User with api-key {api_key} not found'
+            )
+        ), 403
 
-    return jsonify(responses_api.ResponsesAPI.error_not_found(f'User with api-key {api_key} not found'))
+    user_dict: dict = user.to_dict(exclude=('api_key',))
+    user_dict['followers']: list[dict] = [f.follower.to_dict(exclude=('api_key',)) for f in user.follows_author]
+    user_dict['following']: list[dict] = [f.author.to_dict(exclude=('api_key',)) for f in user.follows_follower]
+    return jsonify(responses_api.ResponsesAPI.result_true({'user': user_dict}))
 
 
 @bp.route('/<int:user_id>', methods=('GET',))
