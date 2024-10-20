@@ -21,7 +21,7 @@ def app():
 
 
 @pytest.fixture
-def db(app):
+def session(app):
     with app.app_context():
         from blogs_app.database import get_session
 
@@ -44,7 +44,7 @@ def runner(app):
 
 
 @pytest.fixture
-def create_test_user(db):
+def create_test_user(session):
     test_user = User(name="test_user", api_key="valid_api_key")
-    db.add(test_user)
-    db.commit()
+    session.add(test_user)
+    session.commit()
