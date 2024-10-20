@@ -2,8 +2,7 @@ import pytest
 
 from blogs_app import create_app
 from blogs_app.config import TestingConfig
-from blogs_app.models import User
-
+from blogs_app.models import User, Tweet
 
 
 @pytest.fixture
@@ -44,7 +43,16 @@ def runner(app):
 
 
 @pytest.fixture
-def create_test_user(session):
+def user(session):
     test_user = User(name="test_user", api_key="valid_api_key")
     session.add(test_user)
     session.commit()
+    return test_user
+
+
+@pytest.fixture
+def tweet(session, user):
+    test_tweet = Tweet(content='test_tweet_content', author_id = user.id)
+    session.add(test_tweet)
+    session.commit()
+    return test_tweet
