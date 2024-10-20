@@ -39,7 +39,7 @@ class ResponsesAPI:
         return {
                 'result': False,
                 'error_type': 'Not found',
-                'error_massage': message,
+                'error_message': message,
         }
 
     @classmethod
@@ -57,5 +57,5 @@ class ResponsesAPI:
         return {
             'result': False,
             'error_type': 'Forbidden',
-            'error_massage': message,
+            'error_message': message,
         }
