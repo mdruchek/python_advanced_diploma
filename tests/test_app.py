@@ -1,4 +1,9 @@
+from select import select
+
 import pytest
+from sqlalchemy import select, func
+
+from blogs_app.models import Tweet
 
 
 def test_app_config(app):
@@ -25,23 +30,24 @@ def test_init_dev_db_command(runner, monkeypatch):
     assert Recorder.called
 
 
-def test_create_tweet(client, request):
-    response = client.post('/api/tweets/', json={
+def test_create_tweet(client, request, session):
+    request_url: str = '/api/tweets/'
+    request_data = {
         'tweet_data': 'Test tweet',
         'tweet_media_ids': []
-    }, headers={'Api-Key': 'valid_api_key'})
-    assert response.status_code == 404
+    }
+
+    number_of_tweets_in_database = session.execute(select(func.count(Tweet.id))).scalar()
+    request_headers = {'Api-Key': 'valid_api_key'}
+    response = client.post(request_url, json=request_data, headers=request_headers)
+    assert response.status_code == 403
 
     request.getfixturevalue('create_test_user')
-
-    response = client.post('/api/tweets/', json={
-        'tweet_data': 'Test tweet',
-        'tweet_media_ids': []
-    }, headers={'Api-Key': 'valid_api_key'})
-
+    response = client.post(request_url, json=request_data, headers=request_headers)
     assert response.status_code == 200
     json_data = response.get_json()
     assert json_data['result'] is True
+    assert json_data['tweet_id'] == number_of_tweets_in_database + 1
 
 
 def test_delete_tweet(client, create_test_user):
