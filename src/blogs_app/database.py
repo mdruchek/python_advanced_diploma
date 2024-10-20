@@ -21,7 +21,7 @@ engine = create_engine(current_app.config['DATABASE'], echo=current_app.config['
 Session = sessionmaker(bind=engine)
 
 
-def get_db():
+def get_session():
     """
     Функиця возвращает экземпляр сессии
 
@@ -34,7 +34,7 @@ def get_db():
     return g.db
 
 
-def close_db(e=None):
+def close_session(e=None):
     """
     Функция закрытия сессии
     """
@@ -79,5 +79,5 @@ def init_app(app: Flask):
     :type app: Flask
     """
 
-    app.teardown_appcontext(close_db)
+    app.teardown_appcontext(close_session)
     app.cli.add_command(init_db_command)

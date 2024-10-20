@@ -16,7 +16,7 @@ def upload_medias() -> Response:
     Ендпоинт загрузки фото
     """
 
-    db: Session = database.get_db()
+    db: Session = database.get_session()
     api_key: str = request.headers.get('Api-Key')
     file = request.files['file']
     filename_full: str = secure_filename(file.filename)

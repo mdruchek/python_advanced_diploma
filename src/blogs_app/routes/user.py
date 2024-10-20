@@ -23,7 +23,7 @@ def create_follow(author_id):
     :rtype: Response
     """
 
-    db: Session = database.get_db()
+    db: Session = database.get_session()
     api_key: str = request.headers.get('Api-Key')
     user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
 
@@ -56,7 +56,7 @@ def delete_follow(author_id):
     :rtype: Response
     """
 
-    db: Session = database.get_db()
+    db: Session = database.get_session()
     api_key: str = request.headers.get('Api-Key')
     user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
 
@@ -94,7 +94,7 @@ def me():
     if api_key == 'test':
         return jsonify(responses_api.ResponsesAPI.result_true({'user': {'name': 'test'}}))
 
-    db: Session = database.get_db()
+    db: Session = database.get_session()
     user: Optional[User] = db.execute(
         select(
             User
@@ -124,7 +124,7 @@ def get_user_by_id(user_id):
     :rtype: Response
     """
 
-    db: Session = database.get_db()
+    db: Session = database.get_session()
 
     user: Optional[User] = db.execute(
         select(

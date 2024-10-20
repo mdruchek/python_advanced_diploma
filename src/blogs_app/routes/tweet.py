@@ -24,13 +24,13 @@ def create_tweet() -> tuple[Response, Optional[int]]:
     :rtype: Response
     """
 
-    db: Session = database.get_db()
+    db: Session = database.get_session()
     api_key: str = request.headers.get('Api-Key')
     request_data: Optional[dict] = request.json
     user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
 
     if not user:
-        return jsonify(responses_api.ResponsesAPI.error_not_found(f'User with api-key {api_key} not found')), 404
+        return jsonify(responses_api.ResponsesAPI.error_forbidden(f'User with api-key {api_key} not found')), 403
 
     tweet: Tweet = Tweet(
         content=request_data['tweet_data'],
@@ -54,7 +54,7 @@ def delete_tweet(tweet_id: int) -> tuple[Response, int]:
     :rtype: Response
     """
 
-    db: Session = database.get_db()
+    db: Session = database.get_session()
     api_key: str = request.headers.get('Api-Key')
     user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
 
@@ -104,7 +104,7 @@ def create_like_on_tweet(tweet_id: int) -> tuple[Response, int]:
     :rtype: Response
     """
 
-    db: Session = database.get_db()
+    db: Session = database.get_session()
     api_key: str = request.headers.get('Api-Key')
     user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
 
@@ -126,7 +126,7 @@ def create_like_on_tweet(tweet_id: int) -> tuple[Response, int]:
 
 
 @bp.route('/<int:tweet_id>/likes', methods=('DELETE',))
-def delete_like_with_blog(tweet_id):
+def delete_like_with_tweet(tweet_id):
     """
     Эндпоинт удаления лайка с твита
 
@@ -137,7 +137,7 @@ def delete_like_with_blog(tweet_id):
     :rtype: Response
     """
 
-    db: Session = database.get_db()
+    db: Session = database.get_session()
     api_key: str = request.headers.get('Api-Key')
     user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
 
@@ -163,7 +163,7 @@ def get_tweets():
     :rtype: Response
     """
 
-    db: Session = database.get_db()
+    db: Session = database.get_session()
     tweets: Sequence[Tweet] = db.execute(select(Tweet).order_by(Tweet.id.desc())).scalars().all()
     tweets_list_of_dict = []
 

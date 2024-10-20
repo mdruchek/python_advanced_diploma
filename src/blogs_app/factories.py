@@ -3,7 +3,7 @@ import string
 import factory
 from factory.fuzzy import FuzzyText
 
-from .database import get_db
+from .database import get_session
 from blogs_app import models
 
 
@@ -18,7 +18,7 @@ class UserFactory(factory.alchemy.SQLAlchemyModelFactory):
 
     class Meta:
         model = models.User
-        sqlalchemy_session = get_db()
+        sqlalchemy_session = get_session()
         sqlalchemy_session_persistence = 'commit'
 
     name = factory.Faker('first_name', locale='ru_Ru')
@@ -36,7 +36,7 @@ class TweetFactory(factory.alchemy.SQLAlchemyModelFactory):
 
     class Meta:
         model = models.Tweet
-        sqlalchemy_session = get_db()
+        sqlalchemy_session = get_session()
         sqlalchemy_session_persistence = 'commit'
 
     content = factory.Faker('sentence', nb_words=5, variable_nb_words=True, locale='ru_Ru')
