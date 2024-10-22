@@ -37,10 +37,10 @@ def create_follow(author_id):
     author = db.get(User, author_id)
 
     if not author:
-        return jsonify(responses_api.ResponsesAPI.error_not_found(f"Author with id={author_id} not found")), 404
+        return jsonify(responses_api.ResponsesAPI.error_not_found(f'Author with id={author_id} not found')), 404
 
     if user.id == author.id:
-        return jsonify(responses_api.ResponsesAPI.error_forbidden("The user cannot follow himself")), 403
+        return jsonify(responses_api.ResponsesAPI.error_forbidden('The user cannot follow himself')), 403
 
     follow_for_create: Follow = Follow(author_id=author_id, follower_id=user.id)
     db.add(follow_for_create)
@@ -74,10 +74,10 @@ def delete_follow(author_id):
     author: Optional[User] = db.get(User, author_id)
 
     if not author:
-        return jsonify(responses_api.ResponsesAPI.error_not_found(f"Author with id={author_id} not found")), 404
+        return jsonify(responses_api.ResponsesAPI.error_not_found(f'Author with id={author_id} not found')), 404
 
     if user.id == author.id:
-        return jsonify(responses_api.ResponsesAPI.error_forbidden("The user cannot unfollow himself")), 403
+        return jsonify(responses_api.ResponsesAPI.error_forbidden('The user cannot unfollow himself')), 403
 
     db.execute(
         delete(Follow)
