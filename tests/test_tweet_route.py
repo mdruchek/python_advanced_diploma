@@ -1,9 +1,9 @@
-from sqlalchemy import select, func
+from sqlalchemy import select, insert, func
 
-from blogs_app.models import Tweet
+from blogs_app.models import Tweet, Like
 
 
-def test_create_tweet(client, request, session, user):
+def test_create_tweet(client, session, user):
     request_url: str = '/api/tweets/'
     request_data = {
         'tweet_data': 'Test tweet',
@@ -12,14 +12,18 @@ def test_create_tweet(client, request, session, user):
 
     number_of_tweets_in_database = session.execute(select(func.count(Tweet.id))).scalar()
 
+    # запрос с некорректным api_key
     response = client.post(request_url, json=request_data, headers={'Api-Key': 'no_valid_api_key'})
     assert response.status_code == 403
     json_data = response.get_json()
-    assert json_data['result'] is False
-    assert json_data['error_type'] == 'Forbidden'
-    assert json_data['error_message'] == 'Access is denied. User with api-key no_valid_api_key not found'
+    checking_by_api_error_type(
+        json_data=json_data,
+        error_type='Forbidden',
+        error_message='Access is denied. User with api-key no_valid_api_key not found'
+    )
 
-    response = client.post(request_url, json=request_data, headers={'Api-Key': 'valid_api_key'})
+    # запрос с корректным api_key
+    response = client.post(request_url, json=request_data, headers={'Api-Key': user.api_key})
     assert response.status_code == 200
     json_data = response.get_json()
     assert json_data['result'] is True
@@ -27,43 +31,125 @@ def test_create_tweet(client, request, session, user):
 
 
 def test_delete_tweet(client, tweet):
+    # запрос с некорректным api_key
     response = client.delete('/api/tweets/1', headers={'Api-Key': 'no_valid_api_key'})
     assert response.status_code == 403
     json_data = response.get_json()
-    assert json_data['result'] is False
-    assert json_data['error_type'] == 'Forbidden'
-    assert json_data['error_message'] == 'Access is denied. User with api-key no_valid_api_key not found'
+    checking_by_api_error_type(
+        json_data=json_data,
+        error_type='Forbidden',
+        error_message='Access is denied. User with api-key no_valid_api_key not found'
+    )
 
+    # запрос с несуществующим tweet_id
     no_found_tweet_number = 9999
-    response = client.delete(f'/api/tweets/{no_found_tweet_number}', headers={'Api-Key': 'valid_api_key'})
+    response = client.delete(f'/api/tweets/{no_found_tweet_number}', headers={'Api-Key': tweet.author.api_key})
     assert response.status_code == 404
     json_data = response.get_json()
-    assert json_data['result'] is False
-    assert json_data['error_type'] == 'Not found'
-    assert json_data['error_message'] == f'Tweet with id={no_found_tweet_number} not found'
+    checking_by_api_error_type(
+        json_data=json_data,
+        error_type='Not found',
+        error_message=f'Tweet with id={no_found_tweet_number} not found')
 
-    response = client.delete('/api/tweets/1', headers={'Api-Key': 'valid_api_key'})
+    # попытка удалить чужой твит
+    response = client.delete('/api/tweets/1', headers={'Api-Key': tweet.author.api_key})
     assert response.status_code == 403
     json_data = response.get_json()
-    assert json_data['result'] is False
-    assert json_data['error_type'] == 'Forbidden'
-    assert json_data['error_message'] == 'User can only delete their own blogs'
+    checking_by_api_error_type(
+        json_data=json_data,
+        error_type='Forbidden',
+        error_message='User can only delete their own blogs'
+    )
 
-    response = client.delete(f'/api/tweets/{tweet.id}', headers={'Api-Key': 'valid_api_key'})
+    # удаление своего твита
+    response = client.delete(f'/api/tweets/{tweet.id}', headers={'Api-Key': tweet.author.api_key})
     assert response.status_code == 200
     json_data = response.get_json()
     assert json_data['result'] is True
 
 
-def test_get_tweets(client, user):
+def test_create_like(session, client, tweet):
+    tweet_1: Tweet = session.execute(select(Tweet).where(Tweet.id == 1)).scalar()
+    assert isinstance(tweet_1.likes, list)
+    assert not tweet_1.likes
+
+    # запрос с некорректным api_key
+    response = client.post(f'/api/tweets/{tweet_1.id}/likes', headers={'Api-Key': 'no_valid_api_key'})
+    assert response.status_code == 403
+    json_data = response.get_json()
+    checking_by_api_error_type(
+        json_data=json_data,
+        error_type='Forbidden',
+        error_message='Access is denied. User with api-key no_valid_api_key not found'
+    )
+
+    # запрос с несуществующим tweet_id
+    no_found_tweet_number = 9999
+    response = client.post(f'/api/tweets/{no_found_tweet_number}/likes', headers={'Api-Key': tweet.author.api_key})
+    assert response.status_code == 404
+    json_data = response.get_json()
+    checking_by_api_error_type(
+        json_data=json_data,
+        error_type='Not found',
+        error_message=f'Tweet with id={no_found_tweet_number} not found')
+
+    # попытка поставить лайк на свой твит
+    response = client.post(f'/api/tweets/{tweet.id}/likes', headers={'Api-Key': tweet.author.api_key})
+    assert response.status_code == 403
+    json_data = response.get_json()
+    checking_by_api_error_type(
+        json_data=json_data,
+        error_type='Forbidden',
+        error_message=f"You can only like other people's tweets")
+
+    # лайк чужого твита
+    response = client.post(f'/api/tweets/{tweet_1.id}/likes', headers={'Api-Key': tweet.author.api_key})
+    assert response.status_code == 200
+    json_data = response.get_json()
+    assert json_data['result'] is True
+    assert tweet_1.likes
+
+
+def test_delete_like(session, client, user):
+    # запрос с некорректным api_key
+    response = client.delete(f'/api/tweets/1/likes', headers={'Api-Key': 'no_valid_api_key'})
+    assert response.status_code == 403
+    json_data = response.get_json()
+    checking_by_api_error_type(
+        json_data=json_data,
+        error_type='Forbidden',
+        error_message='Access is denied. User with api-key no_valid_api_key not found'
+    )
+
+    # удаление поставленного лайка
+    session.execute(insert(Like).values(user_id=user.id, tweet_id=1))
+    session.commit()
+    response = client.delete('/api/tweets/1/likes', headers={'Api-Key': user.api_key})
+    assert response.status_code == 200
+    json_data = response.get_json()
+    assert json_data['result'] is True
+
+
+def test_get_tweets(client, tweet):
     response = client.get('/api/tweets/')
     assert response.status_code == 200
     json_data = response.get_json()
     assert json_data['result'] is True
+    assert 'tweets' in json_data
+    assert isinstance(json_data['tweets'], list)
+    test_tweet = json_data['tweets'][0]
+    assert test_tweet == {
+        'id': 6,
+        'author': {
+            'id': 6,
+            'name': 'test_user'
+        },
+        'content': 'test_tweet_content',
+        'likes': []
+    }
 
 
-def test_delete_like(client, user):
-    response = client.delete('/api/tweets/1/like', headers={'Api-Key': 'valid_api_key'})
-    assert response.status_code == 200
-    json_data = response.get_json()
-    assert json_data['result'] is True
+def checking_by_api_error_type(json_data, error_type: str, error_message):
+    assert json_data['result'] is False
+    assert json_data['error_type'] == error_type
+    assert json_data['error_message'] == error_message
