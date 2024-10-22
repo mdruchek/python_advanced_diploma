@@ -126,15 +126,15 @@ def create_like_on_tweet(tweet_id: int) -> tuple[Response, int]:
     tweet_for_like: Optional[Tweet] = db.get(Tweet, tweet_id)
 
     if not tweet_for_like:
-        return jsonify(responses_api.ResponsesAPI.error_not_found(f"Tweet with id={tweet_id} not found")), 404
+        return jsonify(responses_api.ResponsesAPI.error_not_found(f'Tweet with id={tweet_id} not found')), 404
 
-    if not user.id == tweet_for_like.author_id:
-        like: Like = Like(user_id=user.id)
-        tweet_for_like.likes.append(like)
-        db.commit()
-        return jsonify(responses_api.ResponsesAPI.result_true()), 200
+    if user.id == tweet_for_like.author_id:
+        return jsonify(responses_api.ResponsesAPI.error_forbidden("You can only like other people's tweets")), 403
 
-    return jsonify(responses_api.ResponsesAPI.error_forbidden("You can only like other people's tweets")), 403
+    like: Like = Like(user_id=user.id)
+    tweet_for_like.likes.append(like)
+    db.commit()
+    return jsonify(responses_api.ResponsesAPI.result_true()), 200
 
 
 @bp.route('/<int:tweet_id>/likes', methods=('DELETE',))
