@@ -1,6 +1,7 @@
 from sqlalchemy import select, insert, func
 
 from blogs_app.models import Tweet, Like
+from .functions import checking_by_api_error_type
 
 
 def test_create_tweet(client, session, user):
@@ -147,9 +148,3 @@ def test_get_tweets(client, tweet):
         'content': 'test_tweet_content',
         'likes': []
     }
-
-
-def checking_by_api_error_type(json_data, error_type: str, error_message):
-    assert json_data['result'] is False
-    assert json_data['error_type'] == error_type
-    assert json_data['error_message'] == error_message
