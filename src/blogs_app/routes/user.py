@@ -89,7 +89,7 @@ def delete_follow(author_id):
 
 
 @bp.route('/me', methods=('GET',))
-def me():
+def get_me():
     """
     Эндпоинт возвращает информацию авторизированного пользователя
 
@@ -146,10 +146,10 @@ def get_user_by_id(user_id):
         )
     ).scalar()
 
-    if user:
-        user_dict: dict = user.to_dict(exclude=('api_key',))
-        user_dict['followers']: list[dict] = [f.follower.to_dict(exclude=('api_key',)) for f in user.follows_author]
-        user_dict['following']: list[dict] = [f.author.to_dict(exclude=('api_key',)) for f in user.follows_follower]
-        return jsonify(responses_api.ResponsesAPI.result_true({'user': user_dict}))
+    if not user:
+        return jsonify(responses_api.ResponsesAPI.error_not_found(f'User with id {user_id} not found')), 404
 
-    return jsonify(responses_api.ResponsesAPI.error_not_found(f'User with id {user_id} not found'))
+    user_dict: dict = user.to_dict(exclude=('api_key',))
+    user_dict['followers']: list[dict] = [f.follower.to_dict(exclude=('api_key',)) for f in user.follows_author]
+    user_dict['following']: list[dict] = [f.author.to_dict(exclude=('api_key',)) for f in user.follows_follower]
+    return jsonify(responses_api.ResponsesAPI.result_true({'user': user_dict})), 200
