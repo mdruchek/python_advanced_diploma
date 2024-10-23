@@ -1,5 +1,3 @@
-from wsgiref.util import request_uri
-
 from sqlalchemy import select, func
 
 from blogs_app.models import Follow, User
