@@ -5,7 +5,7 @@ def test_app_config(app):
 
 def test_init_dev_db_command(runner, monkeypatch):
     class Recorder(object):
-        called = False
+        called: bool = False
 
     def fake_init_dev_db():
         Recorder.called = True
