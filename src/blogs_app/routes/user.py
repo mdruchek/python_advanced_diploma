@@ -21,6 +21,17 @@ def create_follow(author_id):
 
     :return: Ответ удачного или не удачного добавления подписки на автора
     :rtype: Response
+    ---
+    tags:
+        - users
+    responses:
+        201:
+            description: The followhas been created
+            schema:
+                $ref: '#/schemas/UserSchema'
+        403:
+            description: The
+
     """
 
     db: Session = database.get_session()
@@ -45,7 +56,7 @@ def create_follow(author_id):
     follow_for_create: Follow = Follow(author_id=author_id, follower_id=user.id)
     db.add(follow_for_create)
     db.commit()
-    return jsonify(responses_api.ResponsesAPI.result_true())
+    return jsonify(responses_api.ResponsesAPI.result_true()), 201
 
 
 @bp.route('/<int:author_id>/follow', methods=('DELETE',))
