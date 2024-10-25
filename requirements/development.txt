@@ -1,5 +1,8 @@
 -r base.txt
+apispec==6.7.0
+apispec-webframeworks==1.2.0
 factory_boy==3.3.1
+flasgger==0.9.7.1
 Faker==28.4.1
 python-dateutil==2.9.0.post0
 six==1.16.0
