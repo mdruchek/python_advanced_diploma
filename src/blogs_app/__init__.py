@@ -1,8 +1,12 @@
 import os
 
+from apispec_webframeworks.flask import FlaskPlugin
+from apispec.ext.marshmallow import MarshmallowPlugin
 from flask import Flask, render_template, send_from_directory
+from flasgger import APISpec, Swagger
 
 from .config import ProductionConfig, DevelopmentConfig, TestingConfig
+from .schemas import UserSchema
 
 APP_PATH: str = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH: str = os.path.join(APP_PATH, 'static')
@@ -22,6 +26,23 @@ def create_app(config_app=DevelopmentConfig):
         instance_relative_config=True,
         template_folder=TEMPLATE_PATH
     )
+
+    spec = APISpec(
+        title='TweetsApp',
+        version='1.0.0',
+        openapi_version='3.0',
+        plugins=[
+            FlaskPlugin(),
+            MarshmallowPlugin(),
+        ],
+    )
+
+    template = spec.to_flasgger(
+        app,
+        definitions=[UserSchema],
+    )
+
+    swagger = Swagger(app, template=template)
 
     app.config.from_object(config_app) # конфигурация приложения
 
