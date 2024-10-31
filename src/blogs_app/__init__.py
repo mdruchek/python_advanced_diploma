@@ -30,7 +30,7 @@ def create_app(config_app=DevelopmentConfig):
     spec = APISpec(
         title='TweetsApp',
         version='1.0.0',
-        openapi_version='3.0',
+        openapi_version='2.0',
         plugins=[
             FlaskPlugin(),
             MarshmallowPlugin(),

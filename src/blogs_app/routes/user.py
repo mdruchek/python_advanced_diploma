@@ -15,23 +15,39 @@ bp = Blueprint('users', __name__, url_prefix='/api/users')
 def create_follow(author_id):
     """
     Эндпоинт добавления подписки на автора
-
-    :param author_id: id автора
-    :type author_id: int
-
-    :return: Ответ удачного или не удачного добавления подписки на автора
-    :rtype: Response
     ---
     tags:
         - users
+    parameters:
+        - in: header
+          name: Api-Key
+          required: true
+        - in: path
+          name: author_id
+          required: true
     responses:
         201:
-            description: The followhas been created
+            description: Подписка создана
             schema:
-                $ref: '#/schemas/UserSchema'
+                example: {
+                    'result': True
+                }
         403:
-            description: The
-
+            description: Пользователь с данным api-key не найден или пользователь пытается подписаться на самого себя
+            schema:
+                example: {
+                    'result': False,
+                    'error_type': 'Forbidden',
+                    'error_message': 'string'
+                }
+        404:
+            description: Author with given id not found
+            schema:
+                example: {
+                    'result': False,
+                    'error_type': 'Not found',
+                    'error_message': 'string'
+                }
     """
 
     db: Session = database.get_session()
@@ -63,12 +79,39 @@ def create_follow(author_id):
 def delete_follow(author_id):
     """
     Эндпоинт удаления подписки с автора
-
-    :param author_id: id автора
-    :type author_id: int
-
-    :return: Ответ удачного или не удачного удаления подписки с автора
-    :rtype: Response
+    ---
+    tags:
+        - users
+    parameters:
+        - in: header
+          name: Api-Key
+          required: true
+        - in: path
+          name: author_id
+          required: true
+    responses:
+        201:
+            description: Подписка удалена
+            schema:
+                example: {
+                    'result': True
+                }
+        403:
+            description: Пользователь с данным api-key не найден или пользователь пытается удалить подписку на самого себя
+            schema:
+                example: {
+                    'result': False,
+                    'error_type': 'Forbidden',
+                    'error_message': 'string'
+                }
+        404:
+            description: Author with given id not found
+            schema:
+                example: {
+                    'result': False,
+                    'error_type': 'Not found',
+                    'error_message': 'string'
+                }
     """
 
     db: Session = database.get_session()
@@ -103,9 +146,31 @@ def delete_follow(author_id):
 def get_me():
     """
     Эндпоинт возвращает информацию авторизированного пользователя
-
-    :return: Ответ с информаицией о пользователе
-    :rtype: Response
+    ---
+    tags:
+        - users
+    parameters:
+        - in: header
+          name: Api-Key
+          required: true
+    responses:
+        200:
+            description: Информация пользователя о себе
+            schema:
+                type: object
+                properties:
+                    result: true
+                    user:
+                        $ref: '#/definitions/User'
+                        readOnly: true
+        403:
+            description: Пользователь с данным api-key не найден или пользователь пытается подписаться на самого себя
+            schema:
+                example: {
+                    'result': False,
+                    'error_type': 'Forbidden',
+                    'error_message': 'string'
+                }
     """
 
     api_key: str = request.headers.get('Api-Key')
@@ -132,7 +197,7 @@ def get_me():
     user_dict: dict = user.to_dict(exclude=('api_key',))
     user_dict['followers']: list[dict] = [f.follower.to_dict(exclude=('api_key',)) for f in user.follows_author]
     user_dict['following']: list[dict] = [f.author.to_dict(exclude=('api_key',)) for f in user.follows_follower]
-    return jsonify(responses_api.ResponsesAPI.result_true({'user': user_dict}))
+    return jsonify(responses_api.ResponsesAPI.result_true({'user': user_dict})), 200
 
 
 @bp.route('/<int:user_id>', methods=('GET',))
