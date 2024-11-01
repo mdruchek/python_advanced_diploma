@@ -28,26 +28,32 @@ def create_follow(author_id):
     responses:
         201:
             description: Подписка создана
-            schema:
-                example: {
-                    'result': True
-                }
+            content:
+                application/json:
+                    schema:
+                        example: {
+                            'result': True
+                        }
         403:
             description: Пользователь с данным api-key не найден или пользователь пытается подписаться на самого себя
-            schema:
-                example: {
-                    'result': False,
-                    'error_type': 'Forbidden',
-                    'error_message': 'string'
-                }
+            content:
+                application/json:
+                    schema:
+                        example: {
+                            'result': False,
+                            'error_type': 'Forbidden',
+                            'error_message': 'string'
+                        }
         404:
-            description: Author with given id not found
-            schema:
-                example: {
-                    'result': False,
-                    'error_type': 'Not found',
-                    'error_message': 'string'
-                }
+            description: Автор с указанным id не найден
+            content:
+                application/json:
+                    schema:
+                        example: {
+                            'result': False,
+                            'error_type': 'Not found',
+                            'error_message': 'string'
+                        }
     """
 
     db: Session = database.get_session()
@@ -92,26 +98,32 @@ def delete_follow(author_id):
         responses:
             201:
                 description: Подписка удалена
-                schema:
-                    example: {
-                        'result': True
-                    }
+                content:
+                    application/json:
+                        schema:
+                            example: {
+                                'result': True
+                            }
             403:
                 description: Пользователь с данным api-key не найден или пользователь пытается удалить подписку на самого себя
-                schema:
-                    example: {
-                        'result': False,
-                        'error_type': 'Forbidden',
-                        'error_message': 'string'
-                    }
+                content:
+                    application/json:
+                        schema:
+                            example: {
+                                'result': False,
+                                'error_type': 'Forbidden',
+                                'error_message': 'string'
+                            }
             404:
                 description: Author with given id not found
-                schema:
-                    example: {
-                        'result': False,
-                        'error_type': 'Not found',
-                        'error_message': 'string'
-                    }
+                content:
+                    application/json:
+                        schema:
+                            example: {
+                                'result': False,
+                                'error_type': 'Not found',
+                                'error_message': 'string'
+                            }
     """
 
     db: Session = database.get_session()
@@ -147,37 +159,45 @@ def get_me():
     """
     Эндпоинт возвращает информацию авторизированного пользователя
     ---
-      tags:
-      - users
-      parameters:
-        - name: Api-Key
-          in: header
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: Информация пользователя о себе
-          content:
-            application/json:
+        tags:
+            - users
+        parameters:
+            - name: Api-Key
+              in: header
+              required: true
               schema:
-                type: object
-                properties:
-                  result:
-                    type: boolean
-                    example: true
-                  user:
-                    $ref: '#/components/schemas/User'
-        403:
-          description: Пользователь с данным api-key не найден
-          content:
-            application/json:
-              schema:
-                example: {
-                  'result': False,
-                  'error_type': 'Forbidden',
-                  'error_message': 'string'
-                }
+                  type: string
+        responses:
+            200:
+                description: Информация пользователя о себе
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                result:
+                                    type: boolean
+                                    example: true
+                                user:
+                                    $ref: '#/components/schemas/User'
+                                followers:
+                                    type: array
+                                    items:
+                                      $ref: '#/components/schemas/User'
+                                following:
+                                    type: array
+                                    items:
+                                      $ref: '#/components/schemas/User'
+            403:
+                description: Пользователь с данным api-key не найден
+                content:
+                    application/json:
+                        schema:
+                            example: {
+                              'result': False,
+                              'error_type': 'Forbidden',
+                              'error_message': 'string'
+                            }
     """
 
     api_key: str = request.headers.get('Api-Key')
@@ -211,12 +231,46 @@ def get_me():
 def get_user_by_id(user_id):
     """
     Эндпоинт возвращает информацию о пользователе по его id
-
-    :param user_id: id пользователя
-    :type user_id: int
-
-    :return: Ответ с информаицией о пользователе
-    :rtype: Response
+    ---
+        tags:
+            - users
+        parameters:
+            - name: user_id
+              in: path
+              required: true
+              schema:
+                  type: string
+        responses:
+            200:
+                description: Информация пользователя по id
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                result:
+                                    type: boolean
+                                    example: true
+                                user:
+                                    $ref: '#/components/schemas/User'
+                                followers:
+                                    type: array
+                                    items:
+                                      $ref: '#/components/schemas/User'
+                                following:
+                                    type: array
+                                    items:
+                                      $ref: '#/components/schemas/User'
+            403:
+                description: Пользователь с данным id не найден
+                content:
+                    application/json:
+                        schema:
+                            example: {
+                              'result': False,
+                              'error_type': 'Not found',
+                              'error_message': 'string'
+                            }
     """
 
     db: Session = database.get_session()

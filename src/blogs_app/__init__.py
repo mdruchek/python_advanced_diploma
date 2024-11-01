@@ -1,7 +1,7 @@
 import os
 
-from apispec_webframeworks.flask import FlaskPlugin
-from apispec.ext.marshmallow import MarshmallowPlugin
+# from apispec_webframeworks.flask import FlaskPlugin
+# from apispec.ext.marshmallow import MarshmallowPlugin
 from flask import Flask, render_template, send_from_directory
 from flasgger import APISpec, Swagger
 
@@ -37,8 +37,7 @@ def create_app(config_app=DevelopmentConfig):
                     'type': 'object',
                     'properties': {
                         'id': {
-                            'type': 'integer',
-                            'example': 1
+                            'type': 'integer'
                         },
                         'name': {
                             'type': 'string'
@@ -50,7 +49,7 @@ def create_app(config_app=DevelopmentConfig):
         "specs": [
             {
                 "endpoint": "swagger",
-                "route": "/characteristics/swagger.json",
+                "route": "/apidocs/swagger.json",
                 "rule_filter": lambda rule: True,  # all in
                 "model_filter": lambda tag: True,  # all in
             }
@@ -58,9 +57,9 @@ def create_app(config_app=DevelopmentConfig):
         "title": "Tweet App Api",
         "version": '0.0.1',
         "termsOfService": "",
-        "static_url_path": "/characteristics/static",
+        "static_url_path": "/apidocs/static",
         "swagger_ui": True,
-        "specs_route": "/characteristics/swagger/",
+        "specs_route": "/apidocs/",
         "description": "",
     }
 
