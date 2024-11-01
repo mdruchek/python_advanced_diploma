@@ -80,38 +80,38 @@ def delete_follow(author_id):
     """
     Эндпоинт удаления подписки с автора
     ---
-    tags:
-        - users
-    parameters:
-        - in: header
-          name: Api-Key
-          required: true
-        - in: path
-          name: author_id
-          required: true
-    responses:
-        201:
-            description: Подписка удалена
-            schema:
-                example: {
-                    'result': True
-                }
-        403:
-            description: Пользователь с данным api-key не найден или пользователь пытается удалить подписку на самого себя
-            schema:
-                example: {
-                    'result': False,
-                    'error_type': 'Forbidden',
-                    'error_message': 'string'
-                }
-        404:
-            description: Author with given id not found
-            schema:
-                example: {
-                    'result': False,
-                    'error_type': 'Not found',
-                    'error_message': 'string'
-                }
+        tags:
+            - users
+        parameters:
+            - in: header
+              name: Api-Key
+              required: true
+            - in: path
+              name: author_id
+              required: true
+        responses:
+            201:
+                description: Подписка удалена
+                schema:
+                    example: {
+                        'result': True
+                    }
+            403:
+                description: Пользователь с данным api-key не найден или пользователь пытается удалить подписку на самого себя
+                schema:
+                    example: {
+                        'result': False,
+                        'error_type': 'Forbidden',
+                        'error_message': 'string'
+                    }
+            404:
+                description: Author with given id not found
+                schema:
+                    example: {
+                        'result': False,
+                        'error_type': 'Not found',
+                        'error_message': 'string'
+                    }
     """
 
     db: Session = database.get_session()
@@ -147,29 +147,36 @@ def get_me():
     """
     Эндпоинт возвращает информацию авторизированного пользователя
     ---
-    tags:
-        - users
-    parameters:
-        - in: header
-          name: Api-Key
+      tags:
+      - users
+      parameters:
+        - name: Api-Key
+          in: header
           required: true
-    responses:
+          schema:
+            type: string
+      responses:
         200:
-            description: Информация пользователя о себе
-            schema:
+          description: Информация пользователя о себе
+          content:
+            application/json:
+              schema:
                 type: object
                 properties:
-                    result: true
-                    user:
-                        $ref: '#/definitions/User'
-                        readOnly: true
+                  result:
+                    type: boolean
+                    example: true
+                  user:
+                    $ref: '#/components/schemas/User'
         403:
-            description: Пользователь с данным api-key не найден или пользователь пытается подписаться на самого себя
-            schema:
+          description: Пользователь с данным api-key не найден
+          content:
+            application/json:
+              schema:
                 example: {
-                    'result': False,
-                    'error_type': 'Forbidden',
-                    'error_message': 'string'
+                  'result': False,
+                  'error_type': 'Forbidden',
+                  'error_message': 'string'
                 }
     """
 

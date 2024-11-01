@@ -6,7 +6,7 @@ from flask import Flask, render_template, send_from_directory
 from flasgger import APISpec, Swagger
 
 from .config import ProductionConfig, DevelopmentConfig, TestingConfig
-from .schemas import UserSchema
+# from .schemas import UserSchema
 
 APP_PATH: str = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH: str = os.path.join(APP_PATH, 'static')
@@ -27,22 +27,44 @@ def create_app(config_app=DevelopmentConfig):
         template_folder=TEMPLATE_PATH
     )
 
-    spec = APISpec(
-        title='TweetsApp',
-        version='1.0.0',
-        openapi_version='2.0',
-        plugins=[
-            FlaskPlugin(),
-            MarshmallowPlugin(),
+    swagger_config = {
+        "headers": [],
+        "openapi": "3.0.1",
+        "components": {
+            'schemas': {
+                'User': {
+                    'title': 'User',
+                    'type': 'object',
+                    'properties': {
+                        'id': {
+                            'type': 'integer',
+                            'example': 1
+                        },
+                        'name': {
+                            'type': 'string'
+                        }
+                    }
+                }
+            }
+        },
+        "specs": [
+            {
+                "endpoint": "swagger",
+                "route": "/characteristics/swagger.json",
+                "rule_filter": lambda rule: True,  # all in
+                "model_filter": lambda tag: True,  # all in
+            }
         ],
-    )
+        "title": "Tweet App Api",
+        "version": '0.0.1',
+        "termsOfService": "",
+        "static_url_path": "/characteristics/static",
+        "swagger_ui": True,
+        "specs_route": "/characteristics/swagger/",
+        "description": "",
+    }
 
-    template = spec.to_flasgger(
-        app,
-        definitions=[UserSchema],
-    )
-
-    swagger = Swagger(app, template=template)
+    swagger = Swagger(app, config=swagger_config)
 
     app.config.from_object(config_app) # конфигурация приложения
 
