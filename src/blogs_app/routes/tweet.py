@@ -19,9 +19,55 @@ bp = Blueprint('tweet', __name__, url_prefix='/api/tweets')
 def create_tweet() -> tuple[Response, Optional[int]]:
     """
     Эндпоинт создания твита
-
-    :return: Ответ удачного или не удачного создания твита
-    :rtype: Response
+    ---
+    tags:
+        - tweets
+    parameters:
+        - in: header
+          name: Api-Key
+          required: true
+    requestBody:
+        required: true
+        content:
+            application/json:
+                schema:
+                    type: object
+                    properties:
+                        tweet_data:
+                            type: string
+                        tweet_media_ids:
+                            type: array
+                            items:
+                                type: integer
+                                example: 1
+    responses:
+        201:
+            description: Твит создан
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            result:
+                                type: boolean
+                                example: True
+                            tweet_id:
+                                type: integer
+        403:
+            description: Пользователь с данным api-key не найден или пользователь пытается удалить подписку на самого себя
+            content:
+                application/json:
+                    schema:
+                        properties:
+                            result:
+                                type: boolean
+                                example: False
+                            error_type:
+                                type: string
+                                example: Forbidden
+                            error_message:
+                                type: string
+                                example: error_message
     """
 
     db: Session = database.get_session()
@@ -43,19 +89,64 @@ def create_tweet() -> tuple[Response, Optional[int]]:
 
     user.tweets.append(tweet)
     db.commit()
-    return jsonify(responses_api.ResponsesAPI.result_true({'tweet_id': tweet.id})), 200
+    return jsonify(responses_api.ResponsesAPI.result_true({'tweet_id': tweet.id})), 201
 
 
 @bp.route('/<int:tweet_id>', methods=('DELETE',))
 def delete_tweet(tweet_id: int) -> tuple[Response, int]:
     """
     Эндпоинт удаления твита
-
-    :param tweet_id: id твита
-    :type tweet_id: int
-
-    :return: Ответ удачного или не удачного удаления твита
-    :rtype: Response
+    ---
+    tags:
+        - tweets
+    parameters:
+        - in: header
+          name: Api-Key
+          required: true
+        - in: path
+          name: tweet_id
+          required: true
+    responses:
+        200:
+            description: Твит удалён
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            result:
+                                type: boolean
+                                example: True
+        403:
+            description: Пользователь с данным api-key не найден или пользователь пытается удалить не свой твит
+            content:
+                application/json:
+                    schema:
+                        properties:
+                            result:
+                                type: boolean
+                                example: False
+                            error_type:
+                                type: string
+                                example: Forbidden
+                            error_message:
+                                type: string
+                                example: error_message
+        404:
+            description: Твит с данным id не найден
+            content:
+                application/json:
+                    schema:
+                        properties:
+                            result:
+                                type: boolean
+                                example: False
+                            error_type:
+                                type: string
+                                example: Not found
+                            error_message:
+                                type: string
+                                example: error_message
     """
 
     db: Session = database.get_session()
@@ -104,12 +195,57 @@ def delete_tweet(tweet_id: int) -> tuple[Response, int]:
 def create_like_on_tweet(tweet_id: int) -> tuple[Response, int]:
     """
     Эндпоинт добавления лайка на твит
-
-    :param tweet_id: id твита
-    :type tweet_id: int
-
-    :return: Ответ удачного или не удачного добавлния лайка на твит
-    :rtype: Response
+    ---
+    tags:
+        - tweets
+    parameters:
+        - in: header
+          name: Api-Key
+          required: true
+        - in: path
+          name: tweet_id
+          required: true
+    responses:
+        201:
+            description: Лайк на твит создан
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            result:
+                                type: boolean
+                                example: True
+        403:
+            description: Пользователь с данным api-key не найден или пользователь пытается поставить лайк на свой твит
+            content:
+                application/json:
+                    schema:
+                        properties:
+                            result:
+                                type: boolean
+                                example: False
+                            error_type:
+                                type: string
+                                example: Forbidden
+                            error_message:
+                                type: string
+                                example: error_message
+        404:
+            description: Твит с данным id не найден
+            content:
+                application/json:
+                    schema:
+                        properties:
+                            result:
+                                type: boolean
+                                example: False
+                            error_type:
+                                type: string
+                                example: Not found
+                            error_message:
+                                type: string
+                                example: error_message
     """
 
     db: Session = database.get_session()
@@ -134,19 +270,49 @@ def create_like_on_tweet(tweet_id: int) -> tuple[Response, int]:
     like: Like = Like(user_id=user.id)
     tweet_for_like.likes.append(like)
     db.commit()
-    return jsonify(responses_api.ResponsesAPI.result_true()), 200
+    return jsonify(responses_api.ResponsesAPI.result_true()), 201
 
 
 @bp.route('/<int:tweet_id>/likes', methods=('DELETE',))
 def delete_like_with_tweet(tweet_id):
     """
     Эндпоинт удаления лайка с твита
-
-    :param tweet_id: id твита
-    :type tweet_id: int
-
-    :return: Ответ удачного или не удачного удаления лайка с твита
-    :rtype: Response
+    ---
+    tags:
+        - tweets
+    parameters:
+        - in: header
+          name: Api-Key
+          required: true
+        - in: path
+          name: tweet_id
+          required: true
+    responses:
+        200:
+            description: Лайк удалён с твита
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            result:
+                                type: boolean
+                                example: True
+        403:
+            description: Пользователь с данным api-key не найден
+            content:
+                application/json:
+                    schema:
+                        properties:
+                            result:
+                                type: boolean
+                                example: False
+                            error_type:
+                                type: string
+                                example: Forbidden
+                            error_message:
+                                type: string
+                                example: error_message
     """
 
     db: Session = database.get_session()
@@ -173,13 +339,58 @@ def delete_like_with_tweet(tweet_id):
 @bp.route('/', methods=('GET',))
 def get_tweets():
     """
-    Эндпоинт список твитов
+    Эндпоинт возвращает список твитов
+    ---
+    tags:
+        - tweets
+    parameters:
+        - in: header
+          name: Api-Key
+          required: true
+    responses:
+        200:
+            description: Возвращает список твитов
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            result:
+                                type: boolean
+                                example: True
+                            tweets:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Tweet'
 
-    :return: Ответ со списком всех твитов
-    :rtype: Response
+        403:
+            description: Пользователь с данным api-key не найден
+            content:
+                application/json:
+                    schema:
+                        properties:
+                            result:
+                                type: boolean
+                                example: False
+                            error_type:
+                                type: string
+                                example: Forbidden
+                            error_message:
+                                type: string
+                                example: error_message
     """
 
     db: Session = database.get_session()
+    api_key: str = request.headers.get('Api-Key')
+    user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
+
+    if not user:
+        return jsonify(
+            responses_api.ResponsesAPI.error_forbidden(
+                f'Access is denied. User with api-key {api_key} not found'
+            )
+        ), 403
+
     tweets: Sequence[Tweet] = db.execute(select(Tweet).order_by(Tweet.id.desc())).scalars().all()
     tweets_list_of_dict = []
 

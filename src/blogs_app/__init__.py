@@ -40,8 +40,46 @@ def create_app(config_app=DevelopmentConfig):
                             'type': 'integer'
                         },
                         'name': {
-                            'type': 'string'
+                            'type': 'string',
+                            'example': 'Username'
                         }
+                    }
+                },
+                'Tweet': {
+                    'title': 'Tweet',
+                    'type': 'object',
+                    'properties': {
+                        'id': {
+                            'type': 'integer'
+                        },
+                        'content': {
+                            'type': 'string',
+                            'example': 'Content tweet'
+                        },
+                        'attachments': {
+                            'type': 'array',
+                            'items': {
+                                'type': 'string',
+                                'example': '/link/on/media'
+                            }
+                        },
+                        'author': {
+                            '$ref': '#/components/schemas/User'
+                        },
+                        'likes': {
+                            'type': 'array',
+                            'items': {
+                                'properties': {
+                                    'user_id': {
+                                        'type': 'integer'
+                                    },
+                                    'name': {
+                                        'type': 'string',
+                                        'example': 'Username'
+                                    }
+                                }
+                            }
+                        },
                     }
                 }
             }
