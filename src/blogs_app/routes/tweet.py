@@ -16,7 +16,7 @@ bp = Blueprint('tweet', __name__, url_prefix='/api/tweets')
 
 
 @bp.route('/', methods=('POST',))
-def create_tweet() -> tuple[Response, Optional[int]]:
+def create_tweet() -> tuple[Response, int]:
     """
     Эндпоинт создания твита
     ---
@@ -274,7 +274,7 @@ def create_like_on_tweet(tweet_id: int) -> tuple[Response, int]:
 
 
 @bp.route('/<int:tweet_id>/likes', methods=('DELETE',))
-def delete_like_with_tweet(tweet_id):
+def delete_like_with_tweet(tweet_id) -> tuple[Response, int]:
     """
     Эндпоинт удаления лайка с твита
     ---
@@ -333,11 +333,11 @@ def delete_like_with_tweet(tweet_id):
     )
 
     db.commit()
-    return jsonify(responses_api.ResponsesAPI.result_true())
+    return jsonify(responses_api.ResponsesAPI.result_true()), 200
 
 
 @bp.route('/', methods=('GET',))
-def get_tweets():
+def get_tweets() -> tuple[Response, int]:
     """
     Эндпоинт возвращает список твитов
     ---
@@ -420,4 +420,4 @@ def get_tweets():
 
         tweets_list_of_dict.append(tweet_dict)
 
-    return jsonify(responses_api.ResponsesAPI.result_true({'tweets': tweets_list_of_dict}))
+    return jsonify(responses_api.ResponsesAPI.result_true({'tweets': tweets_list_of_dict})), 200

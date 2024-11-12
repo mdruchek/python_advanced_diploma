@@ -1,23 +1,36 @@
 import os
 from datetime import datetime
+from typing import Optional
 
 from flask import Blueprint, request, current_app, jsonify, Response
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from werkzeug.utils import secure_filename
 
 from blogs_app import database
-from blogs_app.models import Media
+from blogs_app.models import Media, User
+from blogs_app.responses_api import ResponsesAPI
 
 bp = Blueprint('medias', __name__, url_prefix='/api/medias')
 
 @bp.route('/', methods=('POST',))
-def upload_medias() -> Response:
+def upload_medias() -> tuple[Response, int]:
     """
     Ендпоинт загрузки фото
     """
 
     db: Session = database.get_session()
     api_key: str = request.headers.get('Api-Key')
+
+    user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
+
+    if not user:
+        return jsonify(
+            ResponsesAPI.error_forbidden(
+                f'Access is denied. User with api-key {api_key} not found'
+            )
+        ), 403
+
     file = request.files['file']
     filename_full: str = secure_filename(file.filename)
 
@@ -43,7 +56,7 @@ def upload_medias() -> Response:
                 'result': True,
                 'media_id': file_obj.id
             }
-        )
+        ), 201
 
     return jsonify(
         {
@@ -51,7 +64,7 @@ def upload_medias() -> Response:
             'error_type': 'File is not supported',
             'error_massage': 'This file extension is prohibited for downloading. Only .jpeg and .jpg are allowed.',
         }
-    )
+    ), 403
 
 
 def allowed_file(filename_full: str) -> bool:

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, Response
 from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
 
@@ -12,7 +12,7 @@ bp = Blueprint('users', __name__, url_prefix='/api/users')
 
 
 @bp.route('/<int:author_id>/follow', methods=('POST',))
-def create_follow(author_id):
+def create_follow(author_id) -> tuple[Response, int]:
     """
     Эндпоинт добавления подписки на автора
     ---
@@ -82,7 +82,7 @@ def create_follow(author_id):
 
 
 @bp.route('/<int:author_id>/follow', methods=('DELETE',))
-def delete_follow(author_id):
+def delete_follow(author_id) -> tuple[Response, int]:
     """
     Эндпоинт удаления подписки с автора
     ---
@@ -155,7 +155,7 @@ def delete_follow(author_id):
 
 
 @bp.route('/me', methods=('GET',))
-def get_me():
+def get_me() -> tuple[Response, int]:
     """
     Эндпоинт возвращает информацию авторизированного пользователя
     ---
@@ -203,7 +203,7 @@ def get_me():
     api_key: str = request.headers.get('Api-Key')
 
     if api_key == 'test':
-        return jsonify(responses_api.ResponsesAPI.result_true({'user': {'name': 'test'}}))
+        return jsonify(responses_api.ResponsesAPI.result_true({'user': {'name': 'test'}})), 200
 
     db: Session = database.get_session()
     user: Optional[User] = db.execute(
@@ -228,7 +228,7 @@ def get_me():
 
 
 @bp.route('/<int:user_id>', methods=('GET',))
-def get_user_by_id(user_id):
+def get_user_by_id(user_id) -> tuple[Response, int]:
     """
     Эндпоинт возвращает информацию о пользователе по его id
     ---
