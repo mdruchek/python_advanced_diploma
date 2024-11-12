@@ -17,6 +17,62 @@ bp = Blueprint('medias', __name__, url_prefix='/api/medias')
 def upload_medias() -> tuple[Response, int]:
     """
     Ендпоинт загрузки фото
+    ---
+    tags:
+        - medias
+    parameters:
+        - in: header
+          name: Api-Key
+          required: true
+    requestBody:
+        content:
+            image/jpeg:
+                schema:
+                    type: string
+                    format: binary
+    responses:
+        201:
+            description: Фото загружено
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            result:
+                                type: boolean
+                                example: True
+                            media_id:
+                                type: integer
+        403:
+            description: Пользователь с данным api-key не найден или пользователь пытается удалить подписку на самого себя
+            content:
+                application/json:
+                    schema:
+                        properties:
+                            result:
+                                type: boolean
+                                example: False
+                            error_type:
+                                type: string
+                                example: Forbidden
+                            error_message:
+                                type: string
+                                example: error_message
+        415:
+            description: Формат медиафайла не поддерживается
+            content:
+                application/json:
+                    schema:
+                        properties:
+                            result:
+                                type: boolean
+                                example: False
+                            error_type:
+                                type: string
+                                example: File is not supported
+                            error_message:
+                                type: string
+                                example: This file extension is prohibited for downloading. Only .jpeg and .jpg are allowed.
     """
 
     db: Session = database.get_session()
@@ -64,7 +120,7 @@ def upload_medias() -> tuple[Response, int]:
             'error_type': 'File is not supported',
             'error_massage': 'This file extension is prohibited for downloading. Only .jpeg and .jpg are allowed.',
         }
-    ), 403
+    ), 415
 
 
 def allowed_file(filename_full: str) -> bool:
