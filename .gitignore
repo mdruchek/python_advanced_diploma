@@ -3,7 +3,8 @@
 
 .venv/
 .venv3/
-.venv3.12
+.venv311/
+.venv3.12/
 
 *.pyc
 __pycache__/
