@@ -97,11 +97,7 @@ def upload_medias() -> tuple[Response, int]:
     )
 
     if not user:
-        return jsonify(
-            ResponsesAPI.error_forbidden(
-                'Access is denied. User with api-key {api_key} not found'.format(api_key=api_key),
-            ),
-        ), 403
+        return jsonify(ResponsesAPI.error_user_not_found(api_key)), 403
 
     photo = request.files['file']
     filename_full: str = secure_filename(photo.filename)
