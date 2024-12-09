@@ -43,6 +43,24 @@ class ResponsesAPI:
         }
 
     @classmethod
+    def error_user_not_found(cls, api_key):
+        """
+        Ответ 'Ошибка, пользователь с данным api_key не найден'
+
+        :param api_key: api_key пользователя
+        :type api_key: str
+
+        :return: ответ
+        :rtype: dict
+        """
+
+        return {
+                'result': False,
+                'error_type': 'Not found',
+                'error_message': 'Access is denied. User with api-key {api_key} not found'.format(api_key=api_key),
+        }
+
+    @classmethod
     def error_forbidden(cls, message):
         """
         Ответ 'Ошибка, доступ запрещён'
