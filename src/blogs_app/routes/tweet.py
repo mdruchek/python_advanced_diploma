@@ -1,31 +1,36 @@
+"""Модуль роутов /api/tweets."""
+
 import json
 import os
 from collections.abc import Sequence
 from typing import Optional
 
-from flask import Blueprint, request, jsonify, url_for, current_app, Response
-from sqlalchemy import select, delete
+from flask import Blueprint, Response, current_app, jsonify, request, url_for
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from blogs_app import database
-from blogs_app.models import User, Tweet, Media, Like
-from blogs_app import responses_api
-
+from blogs_app import database, responses_api
+from blogs_app.models import Like, Media, Tweet, User
 
 bp = Blueprint('tweet', __name__, url_prefix='/api/tweets')
 
 
 @bp.route('/', methods=('POST',))
 def create_tweet() -> tuple[Response, int]:
-    """
-    Эндпоинт создания твита
+    """Эндпоинт создания твита.
+
+    Returns:
+        HTTP ответ и HTTP статус
+
     ---
     tags:
         - tweets
+
     parameters:
         - in: header
           name: Api-Key
           required: true
+
     requestBody:
         required: true
         content:
@@ -54,7 +59,8 @@ def create_tweet() -> tuple[Response, int]:
                             tweet_id:
                                 type: integer
         403:
-            description: Пользователь с данным api-key не найден или пользователь пытается удалить подписку на самого себя
+            description: Пользователь с данным api-key не найден или
+                пользователь пытается удалить подписку на самого себя
             content:
                 application/json:
                     schema:
@@ -69,36 +75,47 @@ def create_tweet() -> tuple[Response, int]:
                                 type: string
                                 example: error_message
     """
-
     db: Session = database.get_session()
     api_key: str = request.headers.get('Api-Key')
     request_data: Optional[dict] = request.json
-    user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
+    user: Optional[User] = db.execute(
+        select(User).
+        where(
+            User.api_key == api_key,
+        ),
+    ).scalar()
 
     if not user:
-        return jsonify(
-            responses_api.ResponsesAPI.error_forbidden(
-                f'Access is denied. User with api-key {api_key} not found'
-            )
-        ), 403
+        return jsonify(responses_api.ResponsesAPI.error_user_not_found(api_key=api_key)), 403
 
     tweet: Tweet = Tweet(
         content=request_data['tweet_data'],
-        media_ids=json.dumps(request_data.pop('tweet_media_ids'))
+        media_ids=json.dumps(request_data.pop('tweet_media_ids')),
     )
 
     user.tweets.append(tweet)
     db.commit()
-    return jsonify(responses_api.ResponsesAPI.result_true({'tweet_id': tweet.id})), 201
+    return jsonify(
+        responses_api.ResponsesAPI.result_true(
+            {'tweet_id': tweet.id},
+        ),
+    ), 201
 
 
 @bp.route('/<int:tweet_id>', methods=('DELETE',))
 def delete_tweet(tweet_id: int) -> tuple[Response, int]:
-    """
-    Эндпоинт удаления твита
+    """Эндпоинт удаления твита.
+
+    Parameters:
+        tweet_id: номер твита
+
+    Returns:
+        HTTP ответ и HTTP статус
+
     ---
     tags:
         - tweets
+
     parameters:
         - in: header
           name: Api-Key
@@ -106,6 +123,7 @@ def delete_tweet(tweet_id: int) -> tuple[Response, int]:
         - in: path
           name: tweet_id
           required: true
+
     responses:
         200:
             description: Твит удалён
@@ -148,32 +166,39 @@ def delete_tweet(tweet_id: int) -> tuple[Response, int]:
                                 type: string
                                 example: error_message
     """
-
     db: Session = database.get_session()
     api_key: str = request.headers.get('Api-Key')
-    user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
+
+    user: Optional[User] = db.execute(
+        select(User).
+        where(User.api_key == api_key),
+    ).scalar()
 
     if not user:
-        return jsonify(
-            responses_api.ResponsesAPI.error_forbidden(
-                f'Access is denied. User with api-key {api_key} not found'
-            )
-        ), 403
+        return jsonify(responses_api.ResponsesAPI.error_user_not_found(api_key=api_key)), 403
 
     tweet_for_deleted: Optional[Tweet] = db.get(Tweet, tweet_id)
 
     if not tweet_for_deleted:
-        return jsonify(responses_api.ResponsesAPI.error_not_found(f"Tweet with id={tweet_id} not found")), 404
+        return jsonify(
+            responses_api.ResponsesAPI.error_not_found(
+                'Tweet with id={tweet_id} not found'.format(tweet_id=tweet_id),
+            ),
+        ), 404
 
-    if not user.id == tweet_for_deleted.author_id:
-        return jsonify(responses_api.ResponsesAPI.error_forbidden('User can only delete their own blogs')), 403
+    if user.id != tweet_for_deleted.author_id:
+        return jsonify(
+            responses_api.ResponsesAPI.error_forbidden(
+                'User can only delete their own blogs',
+            ),
+        ), 403
 
     if tweet_for_deleted.media_ids:
         media_ids: list[int] = json.loads(tweet_for_deleted.media_ids)
 
         url_medias_for_delete: Sequence[str] = db.execute(
-            select(Media.url)
-            .where(Media.id.in_(media_ids))
+            select(Media.url).
+            where(Media.id.in_(media_ids)),
         ).scalars().all()
 
         for url in url_medias_for_delete:
@@ -188,16 +213,25 @@ def delete_tweet(tweet_id: int) -> tuple[Response, int]:
 
     db.delete(tweet_for_deleted)
     db.commit()
-    return jsonify(responses_api.ResponsesAPI.result_true()), 200
+    return jsonify(
+        responses_api.ResponsesAPI.result_true(),
+    ), 200
 
 
 @bp.route('/<int:tweet_id>/likes', methods=('POST',))
 def create_like_on_tweet(tweet_id: int) -> tuple[Response, int]:
-    """
-    Эндпоинт добавления лайка на твит
+    """Эндпоинт добавления лайка на твит.
+
+    Parameters:
+        tweet_id: номер твита
+
+    Returns:
+        HTTP ответ и HTTP статус
+
     ---
     tags:
         - tweets
+
     parameters:
         - in: header
           name: Api-Key
@@ -205,6 +239,7 @@ def create_like_on_tweet(tweet_id: int) -> tuple[Response, int]:
         - in: path
           name: tweet_id
           required: true
+
     responses:
         201:
             description: Лайк на твит создан
@@ -247,22 +282,24 @@ def create_like_on_tweet(tweet_id: int) -> tuple[Response, int]:
                                 type: string
                                 example: error_message
     """
-
     db: Session = database.get_session()
     api_key: str = request.headers.get('Api-Key')
-    user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
+    user: Optional[User] = db.execute(
+        select(User).
+        where(User.api_key == api_key),
+    ).scalar()
 
     if not user:
-        return jsonify(
-            responses_api.ResponsesAPI.error_forbidden(
-                f'Access is denied. User with api-key {api_key} not found'
-            )
-        ), 403
+        return jsonify(responses_api.ResponsesAPI.error_user_not_found(api_key=api_key)), 403
 
     tweet_for_like: Optional[Tweet] = db.get(Tweet, tweet_id)
 
     if not tweet_for_like:
-        return jsonify(responses_api.ResponsesAPI.error_not_found(f'Tweet with id={tweet_id} not found')), 404
+        return jsonify(
+            responses_api.ResponsesAPI.error_not_found(
+                'Tweet with id={tweet_id} not found'.format(tweet_id=tweet_id),
+            ),
+        ), 404
 
     if user.id == tweet_for_like.author_id:
         return jsonify(responses_api.ResponsesAPI.error_forbidden("You can only like other people's tweets")), 403
@@ -270,16 +307,26 @@ def create_like_on_tweet(tweet_id: int) -> tuple[Response, int]:
     like: Like = Like(user_id=user.id)
     tweet_for_like.likes.append(like)
     db.commit()
-    return jsonify(responses_api.ResponsesAPI.result_true()), 201
+
+    return jsonify(
+        responses_api.ResponsesAPI.result_true(),
+    ), 201
 
 
 @bp.route('/<int:tweet_id>/likes', methods=('DELETE',))
 def delete_like_with_tweet(tweet_id) -> tuple[Response, int]:
-    """
-    Эндпоинт удаления лайка с твита
+    """Эндпоинт удаления лайка с твита.
+
+    Parameters:
+        tweet_id: номер твита
+
+    Returns:
+        HTTP ответ и HTTP статус
+
     ---
     tags:
         - tweets
+
     parameters:
         - in: header
           name: Api-Key
@@ -287,6 +334,7 @@ def delete_like_with_tweet(tweet_id) -> tuple[Response, int]:
         - in: path
           name: tweet_id
           required: true
+
     responses:
         200:
             description: Лайк удалён с твита
@@ -314,39 +362,45 @@ def delete_like_with_tweet(tweet_id) -> tuple[Response, int]:
                                 type: string
                                 example: error_message
     """
-
     db: Session = database.get_session()
     api_key: str = request.headers.get('Api-Key')
-    user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
+
+    user: Optional[User] = db.execute(
+        select(User).
+        where(User.api_key == api_key),
+    ).scalar()
 
     if not user:
-        return jsonify(
-            responses_api.ResponsesAPI.error_forbidden(
-                f'Access is denied. User with api-key {api_key} not found'
-            )
-        ), 403
+        return jsonify(responses_api.ResponsesAPI.error_user_not_found(api_key=api_key)), 403
 
     db.execute(
-        delete(Like)
-        .where(Like.user_id == user.id)
-        .where(Like.tweet_id == tweet_id)
+        delete(Like).
+        where(Like.user_id == user.id).
+        where(Like.tweet_id == tweet_id),
     )
 
     db.commit()
-    return jsonify(responses_api.ResponsesAPI.result_true()), 200
+    return jsonify(
+        responses_api.ResponsesAPI.result_true(),
+    ), 200
 
 
 @bp.route('/', methods=('GET',))
 def get_tweets() -> tuple[Response, int]:
-    """
-    Эндпоинт возвращает список твитов
+    """Эндпоинт возвращает список твитов.
+
+    Returns:
+        HTTP ответ и HTTP статус
+
     ---
     tags:
         - tweets
+
     parameters:
         - in: header
           name: Api-Key
           required: true
+
     responses:
         200:
             description: Возвращает список твитов
@@ -379,36 +433,43 @@ def get_tweets() -> tuple[Response, int]:
                                 type: string
                                 example: error_message
     """
-
     db: Session = database.get_session()
     api_key: str = request.headers.get('Api-Key')
-    user: Optional[User] = db.execute(select(User).where(User.api_key == api_key)).scalar()
+
+    user: Optional[User] = db.execute(
+        select(User).
+        where(User.api_key == api_key),
+    ).scalar()
 
     if not user:
-        return jsonify(
-            responses_api.ResponsesAPI.error_forbidden(
-                f'Access is denied. User with api-key {api_key} not found'
-            )
-        ), 403
+        return jsonify(responses_api.ResponsesAPI.error_user_not_found(api_key=api_key)), 403
 
-    tweets: Sequence[Tweet] = db.execute(select(Tweet).order_by(Tweet.id.desc())).scalars().all()
+    tweets: Sequence[Tweet] = db.execute(
+        select(Tweet).
+        order_by(Tweet.id.desc()),
+    ).scalars().all()
+
     tweets_list_of_dict = []
 
     for tweet in tweets:
         tweet_dict: dict = tweet.to_dict()
         tweet_dict.pop('author_id')
         tweet_dict['author']: dict = tweet.author.to_dict(exclude=('api_key',))
-        tweet_dict['likes']: list = [like.user.to_dict(exclude=('api_key',)) for like in tweet.likes]
+
+        tweet_dict['likes']: list = [
+            like.user.to_dict(exclude=('api_key',))
+            for like in tweet.likes
+        ]
+
         media_ids_json: str = tweet_dict.pop('media_ids')
 
         if media_ids_json:
             media_ids_list: list = json.loads(media_ids_json)
 
-            media_links: Sequence[str] = (
-                db.execute(select(Media.url).where(Media.id.in_(media_ids_list)))
-                .scalars()
-                .all()
-            )
+            media_links: Sequence[str] = db.execute(
+                select(Media.url).
+                where(Media.id.in_(media_ids_list)),
+            ).scalars().all()
 
             tweet_dict['attachments']: str = [
                 url_for('download_file', relative_link=link.replace('\\', '/'))
@@ -420,4 +481,8 @@ def get_tweets() -> tuple[Response, int]:
 
         tweets_list_of_dict.append(tweet_dict)
 
-    return jsonify(responses_api.ResponsesAPI.result_true({'tweets': tweets_list_of_dict})), 200
+    return jsonify(
+        responses_api.ResponsesAPI.result_true(
+            {'tweets': tweets_list_of_dict},
+        ),
+    ), 200
