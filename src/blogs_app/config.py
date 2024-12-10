@@ -1,6 +1,8 @@
-class Config(object):
-    """
-    Класс конфигурации приложения по умолчанию
+"""Конфигурация blogs_app."""
+
+
+class Config:
+    """Класс конфигурации приложения по умолчанию.
 
     Attributes:
         TESTING (bool): режим тестирования
@@ -16,8 +18,7 @@ class Config(object):
 
 
 class ProductionConfig(Config):
-    """
-    Класс конфигурации эксплуатации приложения
+    """Класс конфигурации эксплуатации приложения.
 
     Attributes:
         ENVIRONMENT (str): виртуальное окружение приложения
@@ -29,8 +30,7 @@ class ProductionConfig(Config):
 
 
 class DevelopmentConfig(Config):
-    """
-    Класс конфигурации разработки приложения
+    """Класс конфигурации разработки приложения.
 
     Attributes:
         ENVIRONMENT (str): виртуальное окружение приложения
@@ -46,8 +46,7 @@ class DevelopmentConfig(Config):
 
 
 class TestingConfig(Config):
-    """
-    Класс конфигурации тестирования приложения
+    """Класс конфигурации тестирования приложения.
 
     Attributes:
         DATABASE_URI (str): Настройка подключения к базе данных
