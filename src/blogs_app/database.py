@@ -1,18 +1,15 @@
+"""База данных."""
+
 import click
-
-from flask import current_app, g, Flask
-
+from flask import Flask, current_app, g
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from blogs_app import models
-from blogs_app import factories
-
 
 if not current_app.config['TESTING'] and current_app.config['ENVIRONMENT'] == 'dev':
     current_app.config['DATABASE'] = (
-        current_app.config['DATABASE']
-        .format(
+        current_app.config['DATABASE'].format(
             instance_path=current_app.instance_path,
         )
     )
@@ -21,24 +18,23 @@ engine = create_engine(current_app.config['DATABASE'], echo=current_app.config['
 Session = sessionmaker(bind=engine)
 
 
-def get_session():
-    """
-    Функиця возвращает экземпляр сессии
+def get_session() -> Session:
+    """Функиця возвращает экземпляр сессии.
 
-    :return: Сессия
-    :rtype: Session
+    Returns:
+        Сессия
     """
-
     if 'db' not in g:
         g.db = Session()
     return g.db
 
 
-def close_session(e=None):
-    """
-    Функция закрытия сессии
-    """
+def close_session(exc=None):
+    """Функция закрытия сессии.
 
+    Parameters:
+        exc: исключения
+    """
     db = g.pop('db', None)
 
     if db is not None:
@@ -46,9 +42,8 @@ def close_session(e=None):
 
 
 def init_db():
-    """
-    Функция инициализации базы данных для разработки
-    """
+    """Функция инициализации базы данных для разработки."""
+    from blogs_app import factories
 
     drop_all_models_from_db()
     models.Base.metadata.create_all(bind=engine)
@@ -58,26 +53,22 @@ def init_db():
 
 
 def drop_all_models_from_db():
+    """Удаляет таблицы базы данных."""
     models.Base.metadata.drop_all(bind=engine)
 
 
 @click.command('init-dev-db')
 def init_db_command():
-    """
-    Команда инициализации базы данных
-    """
-
+    """Команда инициализации базы данных."""
     init_db()
     click.echo('Initialized the database for development')
 
 
 def init_app(app: Flask):
-    """
-    Инициализация приложения Flask
+    """Инициализация приложения Flask.
 
-    :param app: экземпляр приложения
-    :type app: Flask
+    Parameters:
+        app: экземпляр приложения
     """
-
     app.teardown_appcontext(close_session)
     app.cli.add_command(init_db_command)
