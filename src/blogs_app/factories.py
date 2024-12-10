@@ -1,15 +1,16 @@
+"""Фабрики для заполнения данными базы данных."""
+
 import string
 
 import factory
 from factory.fuzzy import FuzzyText
 
-from .database import get_session
 from blogs_app import models
+from blogs_app.database import get_session
 
 
 class UserFactory(factory.alchemy.SQLAlchemyModelFactory):
-    """
-    Фабрика для тестового заполнения модели User
+    """Фабрика для тестового заполнения модели User.
 
     Attributes:
         name (str): Имя пользователя
@@ -22,12 +23,11 @@ class UserFactory(factory.alchemy.SQLAlchemyModelFactory):
         sqlalchemy_session_persistence = 'commit'
 
     name = factory.Faker('first_name', locale='ru_Ru')
-    api_key = FuzzyText(length=5, chars=string.ascii_letters+string.digits)
+    api_key = FuzzyText(length=5, chars=string.ascii_letters + string.digits)
 
 
 class TweetFactory(factory.alchemy.SQLAlchemyModelFactory):
-    """
-    Фабрика для тестового заполнения модели твита
+    """Фабрика для тестового заполнения модели твита.
 
     Attributes:
         content (str): содержание твита
