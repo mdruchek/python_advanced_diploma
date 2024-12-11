@@ -1,8 +1,8 @@
-from typing_extensions import Annotated
+"""Модели базы данных."""
 
-from sqlalchemy import Integer, String, Sequence, JSON, ForeignKey, UniqueConstraint
+from sqlalchemy import JSON, ForeignKey, Integer, Sequence, String, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-
+from typing_extensions import Annotated
 
 required_str = Annotated[str, mapped_column(String, nullable=False)]
 required_str50 = Annotated[str, mapped_column(String(50), nullable=False)]
@@ -14,8 +14,7 @@ class Base(DeclarativeBase):
 
 
 class User(Base):
-    """
-    Модель User
+    """Модель User.
 
     Attributes:
         id (int): первичный ключ
@@ -40,25 +39,28 @@ class User(Base):
     )
     likes: Mapped[list['Like']] = relationship(back_populates='user')
     follows_author: Mapped[list['Follow']] = relationship(back_populates='author', foreign_keys='[Follow.author_id]')
-    follows_follower: Mapped[list['Follow']] = relationship(back_populates='follower', foreign_keys='[Follow.follower_id]')
 
-    def to_dict(self, exclude=()):
+    follows_follower: Mapped[list['Follow']] = relationship(
+        back_populates='follower', foreign_keys='[Follow.follower_id]',
+    )
+
+    def to_dict(self, exclude: tuple = ()) -> dict:
+        """Преобразование модели в словарь.
+
+        Parameters:
+            exclude: поля модели исключить из возвращенного словаря
+
+        Returns:
+            словарь атрибутов модели
         """
-        Преобразование модели в словарь
-
-        :param exclude: поля модели исключить из возвращенного словаря
-        :type exclude: tuple
-
-        :return: словарь атрибутов модели
-        :rtype: dict
-        """
-
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in exclude}
+        return {
+            col.name: getattr(self, col.name)
+            for col in self.__table__.columns if col.name not in exclude
+        }
 
 
 class Tweet(Base):
-    """
-    Модель Tweet
+    """Модель Tweet.
 
     Attributes:
         id (int): первичный ключ
@@ -84,26 +86,18 @@ class Tweet(Base):
         cascade='all, delete',
         passive_deletes=True,
     )
-    # medias: Mapped[list['Media']] = relationship(
-    #     back_populates='tweet',
-    #     cascade='all, delete',
-    #     passive_deletes=True,
-    # )
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
+        """Преобразование модели в словарь.
+
+        Returns:
+            словарь атрибутов модели
         """
-        Преобразование модели в словарь
-
-        :return: словарь атрибутов модели
-        :rtype: dict
-        """
-
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        return {col.name: getattr(self, col.name) for col in self.__table__.columns}
 
 
 class Like(Base):
-    """
-    Модель Like
+    """Модель Like.
 
     Attributes:
         id (int): первичный ключ
@@ -116,7 +110,7 @@ class Like(Base):
 
     __tablename__ = 'like'
     __table_args__ = (
-        #создать миграцию
+        # создать миграцию
         UniqueConstraint('user_id', 'tweet_id'),
     )
 
@@ -127,20 +121,17 @@ class Like(Base):
     user: Mapped['User'] = relationship(back_populates='likes')
     tweet: Mapped['Tweet'] = relationship(back_populates='likes')
 
-    def to_dict(self):
-        """
-        Преобразование модели в словарь
+    def to_dict(self) -> dict:
+        """Преобразование модели в словарь.
 
-        :return: словарь атрибутов модели
-        :rtype: dict
+        Returns:
+            словарь атрибутов модели
         """
-
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        return {col.name: getattr(self, col.name) for col in self.__table__.columns}
 
 
 class Media(Base):
-    """
-    Модель Media
+    """Модель Media.
 
     Attributes:
         id (int): первичный ключ
@@ -157,22 +148,17 @@ class Media(Base):
     # tweet_id: Mapped[int] = mapped_column(ForeignKey('tweet.id', ondelete='CASCADE'))
     url: Mapped[required_str]
 
-    # tweet: Mapped['Tweet'] = relationship(back_populates='medias')
+    def to_dict(self) -> dict:
+        """Преобразование модели в словарь.
 
-    def to_dict(self):
+        Returns:
+            словарь атрибутов модели
         """
-        Преобразование модели в словарь
-
-        :return: словарь атрибутов модели
-        :rtype: dict
-        """
-
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        return {col.name: getattr(self, col.name) for col in self.__table__.columns}
 
 
 class Follow(Base):
-    """
-    Модель Follow
+    """Модель Follow.
 
     Attributes:
         id (str): первичный ключ
@@ -185,7 +171,7 @@ class Follow(Base):
 
     __tablename__ = 'follow'
     __table_args__ = (
-        #создать миграцию
+        # создать миграцию
         UniqueConstraint('author_id', 'follower_id'),
     )
 
@@ -196,12 +182,10 @@ class Follow(Base):
     author: Mapped['User'] = relationship(foreign_keys=[author_id])
     follower: Mapped['User'] = relationship(foreign_keys=[follower_id])
 
-    def to_dict(self):
-        """
-        Преобразование модели в словарь
+    def to_dict(self) -> dict:
+        """Преобразование модели в словарь.
 
-        :return: словарь атрибутов модели
-        :rtype: dict
+        Returns:
+            словарь атрибутов модели
         """
-
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        return {col.name: getattr(self, col.name) for col in self.__table__.columns}
