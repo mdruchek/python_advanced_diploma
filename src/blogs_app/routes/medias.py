@@ -86,7 +86,10 @@ def upload_medias() -> tuple[Response, int]:
                                     Only .jpeg and .jpg are allowed.
     """
     db: Session = database.get_session()
-    api_key: str = request.headers.get('Api-Key')
+    api_key: Optional[str] = request.headers.get('Api-Key')
+
+    if not api_key:
+        return jsonify(ResponsesAPI.error_api_key_not_passed()), 401
 
     user: Optional[User] = (
         db.execute(
@@ -100,46 +103,43 @@ def upload_medias() -> tuple[Response, int]:
         return jsonify(ResponsesAPI.error_user_not_found(api_key)), 403
 
     photo = request.files['file']
+
+    if not photo.filename:
+        return jsonify(ResponsesAPI.error_file_not_transferred()), 415
+
     filename_full: str = secure_filename(photo.filename)
 
-    if photo and allowed_file(photo.filename):
-        static_folder: str = os.path.join(current_app.instance_path, current_app.config['UPLOAD_FOLDER'])
-        user_folder: str = os.path.join(static_folder, api_key)
+    if not allowed_file(photo.filename):
+        return jsonify(ResponsesAPI.error_file_not_supported()), 415
 
-        if not os.path.exists(static_folder):
-            os.makedirs(static_folder)
+    static_folder: str = os.path.join(current_app.instance_path, current_app.config['UPLOAD_FOLDER'])
+    user_folder: str = os.path.join(static_folder, api_key)
 
-        if not os.path.exists(user_folder):
-            os.makedirs(user_folder)
+    if not os.path.exists(static_folder):
+        os.makedirs(static_folder)
 
-        filename_full: str = rename_file(filename_full)
-        file_path: str = os.path.join(user_folder, filename_full)
-        photo.save(file_path)
+    if not os.path.exists(user_folder):
+        os.makedirs(user_folder)
 
-        file_obj: Media = Media(
-            url=os.path.join(
-                current_app.config['UPLOAD_FOLDER'],
-                api_key,
-                filename_full,
-            ),
-        )
+    filename_full = rename_file(filename_full)
+    file_path: str = os.path.join(user_folder, filename_full)
+    photo.save(file_path)
 
-        db.add(file_obj)
-        db.commit()
-        return jsonify(
-            {
-                'result': True,
-                'media_id': file_obj.id,
-            },
-        ), 201
+    file_obj: Media = Media(
+        url=os.path.join(
+            current_app.config['UPLOAD_FOLDER'],
+            api_key,
+            filename_full,
+        ),
+    )
 
+    db.add(file_obj)
+    db.commit()
     return jsonify(
-        {
-            'result': False,
-            'error_type': 'File is not supported',
-            'error_massage': 'This file extension is prohibited for downloading. Only .jpeg and .jpg are allowed.',
-        },
-    ), 415
+        ResponsesAPI.result_true(
+            {'media_id': file_obj.id},
+        ),
+    ), 201
 
 
 def allowed_file(filename_full: str) -> bool:
