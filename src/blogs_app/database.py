@@ -18,7 +18,7 @@ engine = create_engine(current_app.config['DATABASE'], echo=current_app.config['
 Session = sessionmaker(bind=engine)
 
 
-def get_session() -> Session:
+def get_session():
     """Функиця возвращает экземпляр сессии.
 
     Returns:
