@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from blogs_app import database, responses_api
 from blogs_app.models import Like, Media, Tweet, User
+from tests.conftest import tweet
 
 bp = Blueprint('tweet', __name__, url_prefix='/api/tweets')
 
@@ -76,8 +77,16 @@ def create_tweet() -> tuple[Response, int]:
                                 example: error_message
     """
     db: Session = database.get_session()
-    api_key: str = request.headers.get('Api-Key')
+    api_key: Optional[str] = request.headers.get('Api-Key')
+
+    if not api_key:
+        return jsonify(responses_api.ResponsesAPI.error_api_key_not_passed()), 401
+
     request_data: Optional[dict] = request.json
+
+    if not request_data:
+        return jsonify(responses_api.ResponsesAPI.error_no_data_in_request_body()), 400
+
     user: Optional[User] = db.execute(
         select(User).
         where(
@@ -87,6 +96,9 @@ def create_tweet() -> tuple[Response, int]:
 
     if not user:
         return jsonify(responses_api.ResponsesAPI.error_user_not_found(api_key=api_key)), 403
+
+    if 'tweet_data' not in request_data and 'tweet_media_ids' not in request_data:
+        return jsonify(responses_api.ResponsesAPI.error_no_data_in_request_body()), 400
 
     tweet: Tweet = Tweet(
         content=request_data['tweet_data'],
@@ -167,7 +179,10 @@ def delete_tweet(tweet_id: int) -> tuple[Response, int]:
                                 example: error_message
     """
     db: Session = database.get_session()
-    api_key: str = request.headers.get('Api-Key')
+    api_key: Optional[str] = request.headers.get('Api-Key')
+
+    if not api_key:
+        return jsonify(responses_api.ResponsesAPI.error_api_key_not_passed()), 401
 
     user: Optional[User] = db.execute(
         select(User).
@@ -283,7 +298,11 @@ def create_like_on_tweet(tweet_id: int) -> tuple[Response, int]:
                                 example: error_message
     """
     db: Session = database.get_session()
-    api_key: str = request.headers.get('Api-Key')
+    api_key: Optional[str] = request.headers.get('Api-Key')
+
+    if not api_key:
+        return jsonify(responses_api.ResponsesAPI.error_api_key_not_passed()), 401
+
     user: Optional[User] = db.execute(
         select(User).
         where(User.api_key == api_key),
@@ -363,7 +382,10 @@ def delete_like_with_tweet(tweet_id) -> tuple[Response, int]:
                                 example: error_message
     """
     db: Session = database.get_session()
-    api_key: str = request.headers.get('Api-Key')
+    api_key: Optional[str] = request.headers.get('Api-Key')
+
+    if not api_key:
+        return jsonify(responses_api.ResponsesAPI.error_api_key_not_passed()), 401
 
     user: Optional[User] = db.execute(
         select(User).
@@ -434,7 +456,10 @@ def get_tweets() -> tuple[Response, int]:
                                 example: error_message
     """
     db: Session = database.get_session()
-    api_key: str = request.headers.get('Api-Key')
+    api_key: Optional[str] = request.headers.get('Api-Key')
+
+    if not api_key:
+        return jsonify(responses_api.ResponsesAPI.error_api_key_not_passed()), 401
 
     user: Optional[User] = db.execute(
         select(User).
@@ -454,9 +479,9 @@ def get_tweets() -> tuple[Response, int]:
     for tweet in tweets:
         tweet_dict: dict = tweet.to_dict()
         tweet_dict.pop('author_id')
-        tweet_dict['author']: dict = tweet.author.to_dict(exclude=('api_key',))
+        tweet_dict['author'] = tweet.author.to_dict(exclude=('api_key',))
 
-        tweet_dict['likes']: list = [
+        tweet_dict['likes'] = [
             like.user.to_dict(exclude=('api_key',))
             for like in tweet.likes
         ]
@@ -471,7 +496,7 @@ def get_tweets() -> tuple[Response, int]:
                 where(Media.id.in_(media_ids_list)),
             ).scalars().all()
 
-            tweet_dict['attachments']: str = [
+            tweet_dict['attachments'] = [
                 url_for('download_file', relative_link=link.replace('\\', '/'))
                 for link in media_links
             ]
