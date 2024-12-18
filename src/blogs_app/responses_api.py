@@ -12,7 +12,7 @@ class ResponsesAPI:
     """
 
     @classmethod
-    def result_true(cls, additional_fields: set = set) -> dict:
+    def result_true(cls, additional_fields: dict = {}) -> dict:
         """Ответ 'Успешный результат'.
 
         Parameters:
@@ -71,4 +71,56 @@ class ResponsesAPI:
             'result': False,
             'error_type': 'Forbidden',
             'error_message': message,
+        }
+
+    @classmethod
+    def error_file_not_supported(cls) -> dict:
+        """Ответ 'Ошибка, файл не поддерживается'.
+
+        Returns:
+            Ответ
+        """
+        return {
+            'result': False,
+            'error_type': 'File is not supported',
+            'error_massage': 'This file extension is prohibited for downloading. Only .jpeg and .jpg are allowed.',
+        }
+
+    @classmethod
+    def error_file_not_transferred(cls) -> dict:
+        """Ответ 'Ошибка, файл не передан'.
+
+        Returns:
+            Ответ
+        """
+        return {
+            'result': False,
+            'error_type': 'File not transferred',
+            'error_massage': 'The request body did not include a file to be saved in tweet.',
+        }
+
+    @classmethod
+    def error_api_key_not_passed(cls) -> dict:
+        """Ответ 'Ошибка, в заголовках запроса не передан Api_Key'.
+
+        Returns:
+            Ответ
+        """
+        return {
+            'result': False,
+            'error_type': 'Api_Key not passed',
+            'error_massage': 'Api_Key is not passed in the request headers.',
+        }
+
+    @classmethod
+    def error_no_data_in_request_body(cls) -> dict:
+        """Ответ 'Ошибка, отсутствуют данные в теле запроса'.
+
+        Returns:
+            Ответ
+        """
+        return {
+            'result': False,
+            'error_type': 'Missing data',
+            'error_massage': 'Отсутствуют данные в теле запроса.',
         }
