@@ -55,7 +55,11 @@ def create_follow(author_id) -> tuple[Response, int]:
                         example: {'result': False, 'error_type': 'Not found', 'error_message': 'string'}
     """
     db: Session = database.get_session()
-    api_key: str = request.headers.get('Api-Key')
+    api_key: Optional[str] = request.headers.get('Api-Key')
+
+    if not api_key:
+        return jsonify(responses_api.ResponsesAPI.error_api_key_not_passed()), 401
+
     user: Optional[User] = db.execute(
         select(User).
         where(User.api_key == api_key),
@@ -137,7 +141,10 @@ def delete_follow(author_id) -> tuple[Response, int]:
                         example: {'result': False, 'error_type': 'Not found', 'error_message': 'string'}
     """
     db: Session = database.get_session()
-    api_key: str = request.headers.get('Api-Key')
+    api_key: Optional[str] = request.headers.get('Api-Key')
+
+    if not api_key:
+        return jsonify(responses_api.ResponsesAPI.error_api_key_not_passed()), 401
 
     user: Optional[User] = db.execute(
         select(User).
@@ -228,7 +235,10 @@ def get_me() -> tuple[Response, int]:
                     schema:
                         example: {'result': False, 'error_type': 'Forbidden', 'error_message': 'string'}
     """
-    api_key: str = request.headers.get('Api-Key')
+    api_key: Optional[str] = request.headers.get('Api-Key')
+
+    if not api_key:
+        return jsonify(responses_api.ResponsesAPI.error_api_key_not_passed()), 401
 
     if api_key == 'test':
         return jsonify(responses_api.ResponsesAPI.result_true({'user': {'name': 'test'}})), 200
@@ -244,12 +254,12 @@ def get_me() -> tuple[Response, int]:
 
     user_dict: dict = user.to_dict(exclude=('api_key',))
 
-    user_dict['followers']: list[dict] = [
+    user_dict['followers'] = [
         follower.follower.to_dict(exclude=('api_key',))
         for follower in user.follows_author
     ]
 
-    user_dict['following']: list[dict] = [
+    user_dict['following'] = [
         following.author.to_dict(exclude=('api_key',))
         for following in user.follows_follower
     ]
@@ -322,12 +332,12 @@ def get_user_by_id(user_id) -> tuple[Response, int]:
 
     user_dict: dict = user.to_dict(exclude=('api_key',))
 
-    user_dict['followers']: list[dict] = [
+    user_dict['followers'] = [
         follower.follower.to_dict(exclude=('api_key',))
         for follower in user.follows_author
     ]
 
-    user_dict['following']: list[dict] = [
+    user_dict['following'] = [
         following.author.to_dict(exclude=('api_key',))
         for following in user.follows_follower
     ]
